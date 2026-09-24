@@ -1,0 +1,13 @@
+{
+  "document_id": "habitation_evidence_001",
+  "content": "Habitation evidence records produced for the pipeline",
+  "source": "data/habitation_evidence.json",
+  "source_type": "json",
+  "record_id": "habitation_evidence_001",
+  "data_origin": "SYNTHETIC_DEMO",
+  "district": "Thanjavur",
+  "state": "Tamil Nadu",
+  "hazard_type": "flood",
+  "data_quality": "SYNTHETIC_DEMO",
+  "last_updated": "2026-09-16T13:37:35Z"
+}

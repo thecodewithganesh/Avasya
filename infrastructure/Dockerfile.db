@@ -1,0 +1,8 @@
+FROM postgis/postgis:16-3.4
+
+# pgvector is not shipped by the postgis/postgis image; layer it in so the
+# RAG document_chunks table (pgvector + HNSW) can live next to PostGIS data.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        postgresql-16-pgvector \
+    && rm -rf /var/lib/apt/lists/*

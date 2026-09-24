@@ -1,0 +1,12 @@
+{
+  "dataset": "pmgsy",
+  "status": "BLOCKED",
+  "records_found": 0,
+  "records_processed": 0,
+  "records_rejected": 0,
+  "warnings": [
+    "Archive is compressed and not safely processable within the current execution limits without extraction tooling."
+  ],
+  "errors": [],
+  "reason": "PMGSY archive is present as a compressed .7z with no verified safe extraction path in this environment."
+}

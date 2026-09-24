@@ -1,0 +1,90 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "AVASYA: Backend (FastAPI, :8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "backend.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "DATABASE_URL": "postgresql+psycopg://avasya:avasya@localhost:55432/avasya",
+        "CORS_ORIGINS": "http://localhost:3000,http://localhost:3001,http://localhost:5173",
+        "APP_ENV": "development",
+        "DATA_DIR": "./data/raw"
+      },
+      "jinja": true,
+      "justMyCode": false,
+      "serverReadyAction": {
+        "pattern": "Uvicorn running on (https?://\\S+)",
+        "uriFormat": "%s/docs",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "AVASYA: Frontend (Next.js dev, :3000)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "env": {
+        "NEXT_PUBLIC_API_URL": "http://localhost:8000",
+        "NEXT_PUBLIC_USE_MOCK_DATA": "false"
+      },
+      "serverReadyAction": {
+        "pattern": "- Local:.+(https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "AVASYA: Full stack via Docker Compose (58000/3001)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose up --build",
+      "cwd": "${workspaceFolder}",
+      "serverReadyAction": {
+        "pattern": ".",
+        "uriFormat": "http://localhost:3001",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "AVASYA: Backend tests (pytest)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests", "backend/tests", "ai/llm/tests", "-q"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "AVASYA: LLM module tests (ai/llm)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["ai/llm/tests", "-q"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "AVASYA: Backend + Frontend (local dev)",
+      "configurations": [
+        "AVASYA: Backend (FastAPI, :8000)",
+        "AVASYA: Frontend (Next.js dev, :3000)"
+      ],
+      "stopAll": true
+    }
+  ]
+}

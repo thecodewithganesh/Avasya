@@ -1,0 +1,97 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "R001",
+        "road_type": "primary",
+        "accessibility": 0.9,
+        "data_source": "SYNTHETIC_DEMO",
+        "data_origin": "SYNTHETIC_DEMO"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.195,
+            13.405
+          ],
+          [
+            80.225,
+            13.405
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "R002",
+        "road_type": "secondary",
+        "accessibility": 0.7,
+        "data_source": "SYNTHETIC_DEMO",
+        "data_origin": "SYNTHETIC_DEMO"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.195,
+            13.39
+          ],
+          [
+            80.225,
+            13.39
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "R003",
+        "road_type": "secondary",
+        "accessibility": 0.55,
+        "data_source": "SYNTHETIC_DEMO",
+        "data_origin": "SYNTHETIC_DEMO"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.195,
+            13.44
+          ],
+          [
+            80.225,
+            13.44
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "R004",
+        "road_type": "local",
+        "accessibility": 0.35,
+        "data_source": "SYNTHETIC_DEMO",
+        "data_origin": "SYNTHETIC_DEMO"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.25,
+            13.39
+          ],
+          [
+            80.25,
+            13.44
+          ]
+        ]
+      }
+    }
+  ]
+}

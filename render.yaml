@@ -1,0 +1,62 @@
+# Render Blueprint — AVASYA backend
+# Deploy via Render Dashboard -> New -> Blueprint (select this repo),
+# or `render blueprint launch` with the Render CLI.
+#
+# The backend needs PostgreSQL with PostGIS + pgvector. Render's managed
+# Postgres does not ship PostGIS/pgvector preinstalled... but Render Postgres
+# images DO include the postgis extension available via CREATE EXTENSION.
+# pgvector is available on Render Postgres as of 2024 ("pgvector" extension).
+#
+# After the first deploy, run migrations + seed once from the Render Shell:
+#   alembic upgrade head
+#   python -m backend.bootstrap_demo
+#   python -m backend.seed_demo
+#   python -m backend.ingestion.south_india 500 25   # real-data ingest (needs data files)
+
+services:
+  - type: web
+    name: avasya-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: avasya-db
+          property: connectionString
+      # SQLAlchemy needs the psycopg driver scheme
+      - key: DATABASE_URL_TRANSFORM
+        value: skip
+      - key: CORS_ORIGINS
+        # TODO: replace with your Netlify site URL once created
+        value: https://avasya.netlify.app,http://localhost:3000,http://localhost:3001
+      - key: APP_ENV
+        value: production
+      - key: DB_ECHO
+        value: "false"
+      - key: POSTGIS_SRID
+        value: "4326"
+      # RAG: slim stub embeddings (no torch) keeps the free-tier image small
+      - key: EMBEDDING_PROVIDER
+        value: "null"
+      - key: EMBEDDING_MODEL
+        value: intfloat/multilingual-e5-small
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_AUTO_PROVISION
+        value: "true"
+
+databases:
+  - name: avasya-db
+    plan: free
+    # Render free Postgres includes PostGIS; enable extensions after first boot:
+    #   CREATE EXTENSION IF NOT EXISTS postgis;
+    #   CREATE EXTENSION IF NOT EXISTS vector;
+    # (Alembic migrations create them if the DB user has permission; else run manually.)

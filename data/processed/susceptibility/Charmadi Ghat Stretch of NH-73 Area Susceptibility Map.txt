@@ -1,0 +1,17 @@
+Esri, TomTom, Garmin, METI/NASA, USGS
+13°3'24"N
+75°26'48"E 75°30'49"E
+13°3'24"N
+13°8'19"N
+75°30'50"E75°26'49"E
+13°8'19"N
+±
+Mesoscale (1:10,000) Landslide Susceptibility
+Mapping along Charmadi Ghat Stretch of NH-73
+connecting Dakshin Kannada
+with Chikkamagaluru district, Karnataka
+High
+Moderate
+Low
+Susceptibility
+0 0.5 1 1.5 20.25 Kilometers

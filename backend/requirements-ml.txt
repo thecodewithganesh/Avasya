@@ -1,0 +1,4 @@
+# Optional ML extras for real E5 embeddings (EMBEDDING_PROVIDER=huggingface).
+# Install into the backend image with --build-arg EMBEDDING_FLAVOR=ml
+# (adds torch + sentence-transformers; the slim default uses NullEmbedder).
+sentence-transformers==3.3.1

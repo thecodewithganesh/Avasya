@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-09-16T13:37:06Z",
+  "datasets": [
+    {
+      "dataset": "census",
+      "operations": [
+        "normalize column names to snake_case",
+        "trim whitespace",
+        "normalize empty strings to NULL",
+        "coerce population and households to numeric",
+        "validate population >= 0 and households >= 0"
+      ]
+    },
+    {
+      "dataset": "climate_vulnerability",
+      "operations": [
+        "standardize district names using source field values",
+        "coerce numeric indicators",
+        "preserve district-level evidence granularity"
+      ]
+    },
+    {
+      "dataset": "rainfall",
+      "operations": [
+        "parse date columns",
+        "convert numeric rainfall fields",
+        "detect invalid values without zero-filling"
+      ]
+    },
+    {
+      "dataset": "hospitals",
+      "operations": [
+        "parse coordinate strings",
+        "drop invalid coordinates that cannot be repaired",
+        "deduplicate by official/coordinate identity"
+      ]
+    },
+    {
+      "dataset": "hazards",
+      "operations": [
+        "standardize hazard metadata",
+        "validate geometries and CRS",
+        "preserve historical event semantics"
+      ]
+    },
+    {
+      "dataset": "roads",
+      "operations": [
+        "validate geometry and CRS",
+        "normalize road_type values",
+        "retain original identifiers"
+      ]
+    },
+    {
+      "dataset": "pdf_extraction",
+      "operations": [
+        "extract text from susceptibility PDFs",
+        "record document metadata and page counts",
+        "retain factual source text only"
+      ]
+    }
+  ]
+}
