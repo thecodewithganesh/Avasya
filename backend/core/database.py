@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
+from geoalchemy2.elements import WKTElement
 from sqlalchemy import Text, create_engine
 from sqlalchemy import event as sa_event
 from sqlalchemy.orm import Session, sessionmaker
@@ -33,9 +34,30 @@ SessionLocal = sessionmaker(
 )
 
 
+def init_db_schema() -> None:
+    if settings.DATABASE_URL.startswith("sqlite"):
+        from geoalchemy2 import Geometry
+        from pgvector.sqlalchemy import Vector
+        from backend.models import Base
+
+        for table in Base.metadata.tables.values():
+            for column in table.columns:
+                if isinstance(column.type, (Geometry, Vector)):
+                    column.type = Text()
+        Base.metadata.create_all(bind=engine)
+
+
+def make_wkt_element(wkt_string: str, srid: int = 4326) -> Any:
+    elem = WKTElement(wkt_string, srid=srid)
+    if settings.DATABASE_URL.startswith("sqlite"):
+        return str(elem.data) if hasattr(elem, "data") else str(wkt_string)
+    return elem
+
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+

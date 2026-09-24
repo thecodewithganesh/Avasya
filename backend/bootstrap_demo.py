@@ -17,10 +17,9 @@ import json
 import os
 from pathlib import Path
 
-from geoalchemy2.elements import WKTElement
 from sqlalchemy import select
 
-from backend.core.database import SessionLocal
+from backend.core.database import SessionLocal, init_db_schema, make_wkt_element
 from backend.models import CapacityAssessment, Destination, Evidence, Habitation, Hazard, HabitationHazard
 from backend.models.enums import DataOrigin
 
@@ -76,6 +75,7 @@ def _representative_point(feature: dict) -> tuple[float | None, float | None]:
 
 
 def main() -> None:
+    init_db_schema()
     db = SessionLocal()
     try:
         habitation_by_code: dict[str, Habitation] = {}
@@ -95,7 +95,7 @@ def main() -> None:
                     country="India",
                     latitude=float(lat) if lat is not None else None,
                     longitude=float(lon) if lon is not None else None,
-                    geom=WKTElement(f"SRID=4326;POINT({lon} {lat})", srid=4326)
+                    geom=make_wkt_element(f"SRID=4326;POINT({lon} {lat})", srid=4326)
                     if lat is not None and lon is not None
                     else None,
                     population=int(props.get("population") or 0),
@@ -129,7 +129,7 @@ def main() -> None:
                 description="SYNTHETIC_DEMO hazard fixture - not real evidence",
                 severity_score=severity,
                 probability_score=float(props["probability_score"]) if props.get("probability_score") else None,
-                geom=WKTElement(f"SRID=4326;POINT({lon} {lat})", srid=4326)
+                geom=make_wkt_element(f"SRID=4326;POINT({lon} {lat})", srid=4326)
                 if lat is not None and lon is not None
                 else None,
                 data_origin=DataOrigin.SYNTHETIC_DEMO,
@@ -165,9 +165,9 @@ def main() -> None:
                 district=habitation_ids[0].district if habitation_ids else None,
                 state=habitation_ids[0].state if habitation_ids else None,
                 country="India",
-                geom=WKTElement(f"SRID=4326;POINT({lon} {lat})", srid=4326)
+                geom=make_wkt_element(f"SRID=4326;POINT({lon} {lat})", srid=4326)
                 if lat is not None and lon is not None
-                else WKTElement("SRID=4326;POINT(78 12)", srid=4326),
+                else make_wkt_element("SRID=4326;POINT(78 12)", srid=4326),
                 capacity_total=capacity,
                 capacity_available=capacity,
                 risk_score=float(props.get("risk_score") or 15.0),

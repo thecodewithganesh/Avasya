@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import os
 
-from geoalchemy2.elements import WKTElement
 from sqlalchemy import select
 
-from backend.core.database import SessionLocal
+from backend.core.database import SessionLocal, init_db_schema, make_wkt_element
 from backend.models import (
     CapacityAssessment,
     Destination,
@@ -19,6 +18,7 @@ from backend.services.decision import DecisionService
 
 
 def main() -> None:
+    init_db_schema()
     # Synthetic records are useful for a demonstration, but they must never
     # silently become the operational fallback when a real-data deployment is
     # incomplete.  Compose enables this only when explicitly requested.
@@ -62,7 +62,7 @@ def main() -> None:
                     district=habitation.district,
                     state=habitation.state,
                     country="India",
-                    geom=WKTElement("SRID=4326;POINT(78 12)", srid=4326),
+                    geom=make_wkt_element("SRID=4326;POINT(78 12)", srid=4326),
                     capacity_total=nominal,
                     capacity_available=nominal,
                     risk_score=risk,
