@@ -1,0 +1,16 @@
+Esri, TomTom, Garmin, METI/NASA, USGS
+11°19'46"N
+76°10'53"E 76°15'47"E
+11°19'51"N
+11°26'8"N
+76°15'41"E76°10'47"E
+11°26'3"N
+0 1 2 3 40.5 Kilometers
+±
+Meso- scale (1:10,000) landslide susceptibility mapping
+in and around Adyanpara, Kavalappara, Muthappankunnu
+and Bhoodanam areas, Malappuram district, Kerala
+High
+Moderate
+Low
+Susceptibility

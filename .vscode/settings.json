@@ -1,0 +1,24 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests",
+    "backend/tests",
+    "ai/llm/tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.analysis.extraPaths": ["${workspaceFolder}"],
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/__pycache__": true,
+    "**/*.tsbuildinfo": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/__pycache__/**": true
+  },
+  "editor.formatOnSave": true,
+  "typescript.tsdk": "frontend/node_modules/typescript/lib"
+}

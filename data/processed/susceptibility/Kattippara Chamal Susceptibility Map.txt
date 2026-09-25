@@ -1,0 +1,16 @@
+Esri, TomTom, Garmin, METI/NASA, USGS
+11°24'43"N
+75°54'3"E 75°57'43"E
+11°24'47"N
+11°29'29"N
+75°57'38"E75°53'57"E
+11°29'26"N
+0 1 2 3 40.5 Kilometers
+±
+Meso-scale (1:10,000) Landslide Susceptibility Mapping
+in and around Kattippara, Chamal and Vettiyozhijathottam areas,
+Kozhikode , Kerala
+High
+Moderate
+Low
+Susceptibility

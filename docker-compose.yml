@@ -1,0 +1,181 @@
+services:
+  db:
+    # pgvector must be baked into the PostGIS image (postgis/postgis does not
+    # ship the vector extension). This tiny build layers pgvector on top.
+    build:
+      context: ./infrastructure
+      dockerfile: Dockerfile.db
+    container_name: avasya-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: avasya
+      POSTGRES_USER: avasya
+      POSTGRES_PASSWORD: avasya
+    ports:
+      # Host port 55432 to avoid clashes with other local stacks that bind 5432.
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U avasya -d avasya"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      # EMBEDDING_FLAVOR=ml (via .env) bakes torch + E5 into the image for
+      # real semantic retrieval; slim default keeps the image ~200MB.
+      args:
+        EMBEDDING_FLAVOR: ${EMBEDDING_FLAVOR:-slim}
+    container_name: avasya-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://avasya:avasya@db:5432/avasya
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3300,http://localhost:5173
+      APP_ENV: development
+      # null = zero-vector stub so the container stays lightweight and the
+      # semantic endpoints still work (retrieval over stub vectors is honest
+      # but weakly ranked). Set to huggingface for real E5 retrieval.
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-null}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-intfloat/multilingual-e5-small}
+      EMBEDDING_MODEL_PATH: ${EMBEDDING_MODEL_PATH:-models/multilingual-e5-small}
+      # Supabase auth (optional): set in .env to enable JWT-verified officer
+      # auth; unset keeps the demo X-Officer-Email mechanism.
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      SUPABASE_AUTO_PROVISION: ${SUPABASE_AUTO_PROVISION:-true}
+      # LLM runtime: unset = honest 503 from /llm endpoints. Options:
+      #   server  -> llama.cpp server container (`llm` profile)
+      #   ollama  -> Ollama container (`ollama` profile; teammate E's runtime)
+      AVASYA_LLM_RUNTIME: ${AVASYA_LLM_RUNTIME:-}
+      AVASYA_LLM_SERVER_URL: ${AVASYA_LLM_SERVER_URL:-}
+      AVASYA_LLM_OLLAMA_URL: ${AVASYA_LLM_OLLAMA_URL:-}
+      AVASYA_LLM_OLLAMA_MODEL: ${AVASYA_LLM_OLLAMA_MODEL:-}
+      AVASYA_LLM_TIMEOUT: ${AVASYA_LLM_TIMEOUT:-}
+      AVASYA_LLM_TEMPERATURE: ${AVASYA_LLM_TEMPERATURE:-}
+      AVASYA_LLM_MAX_TOKENS: ${AVASYA_LLM_MAX_TOKENS:-}
+      # Synthetic fixtures are strictly opt-in.  A missing real dataset must
+      # surface as unavailable, never be replaced by a convincing demo.
+      AVASYA_ENABLE_SYNTHETIC_DEMO: ${AVASYA_ENABLE_SYNTHETIC_DEMO:-false}
+    ports:
+      # Host port 58000 to avoid clashes with other local stacks that bind 8000.
+      - "58000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # All source and processed data are mounted read-only.  Mounting the
+      # directory (rather than a possibly absent file) avoids Docker creating
+      # a misleading empty bind-mount directory.
+      - ./data/raw:/app/data/raw:ro
+      - ./data/processed:/app/data/processed:ro
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m backend.ingestion.south_india &&
+             if [ \"$$AVASYA_ENABLE_SYNTHETIC_DEMO\" = \"true\" ]; then
+               python -m backend.bootstrap_demo && python -m backend.seed_demo;
+             else
+               echo 'synthetic demo disabled; serving only persisted real data';
+             fi &&
+             uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # One-shot RAG indexer: runs the idempotent chunk → embed → upsert after
+  # the backend's bootstrap/seed has populated the evidence table. Keeps the
+  # backend command simple and makes re-indexing explicit:
+  #   docker compose run --rm rag-index
+  rag-index:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: avasya-rag-index
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql+psycopg://avasya:avasya@db:5432/avasya
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-null}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-intfloat/multilingual-e5-small}
+      EMBEDDING_MODEL_PATH: ${EMBEDDING_MODEL_PATH:-models/multilingual-e5-small}
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["python", "-m", "backend.rag"]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* values are baked into the Next.js bundle at BUILD
+        # time, so they must arrive as build args (runtime `environment`
+        # cannot change an already-compiled bundle).
+        NEXT_PUBLIC_API_URL: http://localhost:58000
+        NEXT_PUBLIC_USE_MOCK_DATA: "false"
+        NEXT_PUBLIC_DEMO_OFFICER_EMAIL: demo.officer@avasya.local
+        # Supabase browser auth (optional): anon key only, never service role.
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+    container_name: avasya-frontend
+    restart: unless-stopped
+    environment:
+      # Server-side (SSR/route-handler) fetches inside Docker resolve the
+      # backend via the compose service name; the browser keeps using the
+      # build-time NEXT_PUBLIC_API_URL (host-mapped port).
+      SERVER_SIDE_API_URL: http://backend:8000
+    ports:
+      # Host port 3001 to avoid clashes with other local stacks that bind 3000.
+      - "3001:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # Optional local LLM inference (llama.cpp OpenAI-compatible server).
+  # Activate with:  docker compose --profile llm up -d --build
+  # Requires the GGUF model at ./models/Qwen3-8B-Q4_K_M.gguf and backend env:
+  #   AVASYA_LLM_RUNTIME=server
+  #   AVASYA_LLM_SERVER_URL=http://llm:8000
+  llm:
+    build:
+      context: ./infrastructure
+      dockerfile: Dockerfile.llm
+    container_name: avasya-llm
+    restart: unless-stopped
+    profiles: ["llm"]
+    volumes:
+      - ./models:/models:ro
+    ports:
+      - "8081:8000"
+
+  # Optional local LLM inference via Ollama — teammate E's runtime, now the
+  # zero-download easiest trigger for live LLM answers:
+  #   docker compose --profile ollama up -d
+  #   docker compose exec ollama ollama pull llama3.2:3b
+  # and set in .env:
+  #   AVASYA_LLM_RUNTIME=ollama
+  #   AVASYA_LLM_OLLAMA_URL=http://ollama:11434
+  #   AVASYA_LLM_OLLAMA_MODEL=llama3.2:3b
+  # then: docker compose up -d backend   (recreate backend to pick up env)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: avasya-ollama
+    restart: unless-stopped
+    profiles: ["ollama"]
+    volumes:
+      - ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  ollama_models:

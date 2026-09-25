@@ -1,0 +1,9 @@
+{
+  "version": "0.2.0",
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.debugpy",
+    "ms-azuretools.vscode-docker",
+    "bradlc.vscode-tailwindcss"
+  ]
+}

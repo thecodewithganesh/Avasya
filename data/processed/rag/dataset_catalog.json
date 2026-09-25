@@ -1,0 +1,13 @@
+{
+  "document_id": "dataset_catalog_001",
+  "content": "Inventory of all raw files present under data/raw",
+  "source": "data/raw",
+  "source_type": "directory",
+  "record_id": "dataset_catalog_001",
+  "data_origin": "MIXED",
+  "district": "NOT_AVAILABLE",
+  "state": "NOT_AVAILABLE",
+  "hazard_type": "NOT_AVAILABLE",
+  "data_quality": "VALIDATED",
+  "last_updated": "2026-09-16T13:37:35Z"
+}

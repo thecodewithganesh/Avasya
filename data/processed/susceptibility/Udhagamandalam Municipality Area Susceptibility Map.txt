@@ -1,0 +1,17 @@
+Esri, TomTom, Garmin, METI/NASA, USGS
+11°21'52"N
+76°40'38"E 76°44'18"E
+11°21'51"N
+11°26'31"N
+76°44'20"E76°40'40"E
+11°26'32"N
+Meso scale (1:10,000) landslide susceptibility mapping
+in parts of Udhagamandalam Municipality,
+Nilgiri District, Tamil Nadu
+0 0.5 1 1.5 20.25
+Kilometers
+High
+Moderate
+Low
+Susceptibility
+±

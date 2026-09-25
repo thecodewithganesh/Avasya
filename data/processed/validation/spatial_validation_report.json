@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-09-16T13:37:35Z",
+  "canonical_crs": "EPSG:4326",
+  "datasets": [
+    {
+      "dataset": "habitations.geojson",
+      "crs": "EPSG:4326",
+      "geometry_type": "Polygon",
+      "status": "VALID"
+    },
+    {
+      "dataset": "roads.geojson",
+      "crs": "EPSG:4326",
+      "geometry_type": "LineString",
+      "status": "VALID"
+    },
+    {
+      "dataset": "hospitals_clean.geojson",
+      "crs": "EPSG:4326",
+      "geometry_type": "Point",
+      "status": "VALID"
+    },
+    {
+      "dataset": "hazards_clean.geojson",
+      "crs": "EPSG:4326",
+      "geometry_type": "MultiPolygon/Polygon",
+      "status": "VALID"
+    }
+  ]
+}

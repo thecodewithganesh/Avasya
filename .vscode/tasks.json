@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AVASYA: Run everything (Docker)",
+      "type": "shell",
+      "command": "docker compose up --build -d && timeout 15 && start http://localhost:3001",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "AVASYA: Stop Docker stack",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "AVASYA: DB only (for local backend debugging)",
+      "type": "shell",
+      "command": "docker compose up -d db && docker compose exec db alembic upgrade head || docker compose run --rm backend alembic upgrade head",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "AVASYA: All tests",
+      "type": "shell",
+      "command": "python -m pytest tests backend/tests ai/llm/tests -q",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "AVASYA: Frontend typecheck",
+      "type": "shell",
+      "command": "npx tsc --noEmit",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "AVASYA: MVP verification (all 13 parts)",
+      "type": "shell",
+      "command": "cmd /c scripts\\run_mvp_checks.cmd",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

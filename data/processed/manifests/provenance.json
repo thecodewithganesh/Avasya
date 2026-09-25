@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-09-16T13:37:35Z",
+  "datasets": [
+    {
+      "dataset": "Census_Villages.parquet",
+      "source_name": "Census of India",
+      "authority": "Government of India",
+      "source_url": "NOT_AVAILABLE",
+      "dataset_name": "Census_Villages.parquet",
+      "dataset_date": "2011",
+      "download_date": "NOT_AVAILABLE",
+      "coverage": "India",
+      "format": "parquet",
+      "crs": "EPSG:4326",
+      "limitations": "Administrative labels require downstream standardization; population data is village-level as provided.",
+      "processing_steps": [
+        "read parquet",
+        "normalize names",
+        "write cleaned CSV"
+      ],
+      "data_origin": "REAL"
+    },
+    {
+      "dataset": "climate-vulnerability-indicators-district-wise.csv",
+      "source_name": "Climate vulnerability indicators",
+      "authority": "NOT_AVAILABLE",
+      "source_url": "NOT_AVAILABLE",
+      "dataset_name": "climate-vulnerability-indicators-district-wise.csv",
+      "dataset_date": "2021",
+      "download_date": "NOT_AVAILABLE",
+      "coverage": "India",
+      "format": "csv",
+      "crs": "NOT_APPLICABLE",
+      "limitations": "District-level only; not habitation-level evidence.",
+      "processing_steps": [
+        "coercion to numeric",
+        "standardize district labels"
+      ],
+      "data_origin": "REAL"
+    },
+    {
+      "dataset": "rainfall_statewise_daily_imd.csv",
+      "source_name": "IMD Rainfall Daily",
+      "authority": "India Meteorological Department",
+      "source_url": "NOT_AVAILABLE",
+      "dataset_name": "rainfall_statewise_daily_imd.csv",
+      "dataset_date": "2026",
+      "download_date": "NOT_AVAILABLE",
+      "coverage": "India",
+      "format": "csv",
+      "crs": "NOT_APPLICABLE",
+      "limitations": "State-level daily rainfall; not habitation-level.",
+      "processing_steps": [
+        "date parsing",
+        "numeric conversion"
+      ],
+      "data_origin": "REAL"
+    },
+    {
+      "dataset": "hospital_directory.csv",
+      "source_name": "Hospital directory",
+      "authority": "NOT_AVAILABLE",
+      "source_url": "NOT_AVAILABLE",
+      "dataset_name": "hospital_directory.csv",
+      "dataset_date": "NOT_AVAILABLE",
+      "download_date": "NOT_AVAILABLE",
+      "coverage": "India",
+      "format": "csv",
+      "crs": "WGS84",
+      "limitations": "Many rows without coordinates; invalid coordinates removed safely.",
+      "processing_steps": [
+        "coordinate parsing",
+        "geocoding validation",
+        "deduping"
+      ],
+      "data_origin": "REAL"
+    },
+    {
+      "dataset": "habitations.geojson",
+      "source_name": "SYNTHETIC_DEMO",
+      "authority": "Project demo fixture",
+      "source_url": "NOT_AVAILABLE",
+      "dataset_name": "habitations.geojson",
+      "dataset_date": "NOT_AVAILABLE",
+      "download_date": "NOT_AVAILABLE",
+      "coverage": "demo",
+      "format": "geojson",
+      "crs": "EPSG:4326",
+      "limitations": "Demo synthetic records only.",
+      "processing_steps": [
+        "geometry validation",
+        "contract alignment"
+      ],
+      "data_origin": "SYNTHETIC_DEMO"
+    }
+  ]
+}

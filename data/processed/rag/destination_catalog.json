@@ -1,0 +1,13 @@
+{
+  "document_id": "destination_catalog_001",
+  "content": "Relief-center destination list",
+  "source": "data/processed/destinations/destinations_clean.json",
+  "source_type": "json",
+  "record_id": "destination_catalog_001",
+  "data_origin": "SYNTHETIC_DEMO",
+  "district": "Thanjavur",
+  "state": "Tamil Nadu",
+  "hazard_type": "NOT_AVAILABLE",
+  "data_quality": "SYNTHETIC_DEMO",
+  "last_updated": "2026-09-16T13:37:35Z"
+}

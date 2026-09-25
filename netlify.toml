@@ -1,0 +1,26 @@
+# Netlify — AVASYA frontend (Next.js)
+# Base is the frontend/ subdirectory of the repo.
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  # Netlify resolves `publish` relative to the repo root (not `base`),
+  # so this must include the frontend/ prefix.
+  publish = "frontend/.next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# NEXT_PUBLIC_* values are baked into the bundle at build time.
+# Set these in Netlify UI (Site configuration -> Environment variables)
+# or uncomment here and fill in real values:
+#
+# [build.environment]
+#   NEXT_PUBLIC_API_URL = "https://avasya-backend.onrender.com"
+#   NEXT_PUBLIC_USE_MOCK_DATA = "false"
+#   NEXT_PUBLIC_DEMO_OFFICER_EMAIL = "demo.officer@avasya.local"
+#   NEXT_PUBLIC_SUPABASE_URL = "https://toomecockypzckwxtpnbs.supabase.co"
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY = "<anon key>"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

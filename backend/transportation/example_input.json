@@ -1,0 +1,120 @@
+{
+  "habitation": {
+    "id": "H-001",
+    "name": "Riverbank Hamlet",
+    "road_node": "habitation-1",
+    "population": 420,
+    "vulnerable_population": 168,
+    "source": "Freebuff habitation inventory 2026-09-16"
+  },
+  "evacuees": 420,
+  "destinations": [
+    {
+      "id": "D-001",
+      "name": "North Relief Centre",
+      "road_node": "destination-1",
+      "capacity_total": 650,
+      "occupied": 120,
+      "accepts_relocation": true,
+      "accessibility": "OPEN",
+      "source": "District capacity registry 2026-09-16"
+    },
+    {
+      "id": "D-002",
+      "name": "East Community Hall",
+      "road_node": "destination-2",
+      "capacity_total": 900,
+      "occupied": 100,
+      "accepts_relocation": true,
+      "accessibility": "OPEN",
+      "source": "District capacity registry 2026-09-16"
+    }
+  ],
+  "road_segments": [
+    {
+      "id": "R-001",
+      "from_node": "habitation-1",
+      "to_node": "junction-a",
+      "distance_km": 3.0,
+      "travel_time_minutes": 8,
+      "accessibility": "OPEN",
+      "blocked": false,
+      "hazard_exposure": 0.10,
+      "hazard_types": [],
+      "source": "Road survey 2026-09-16"
+    },
+    {
+      "id": "R-002",
+      "from_node": "junction-a",
+      "to_node": "destination-1",
+      "distance_km": 8.0,
+      "travel_time_minutes": 26,
+      "accessibility": "OPEN",
+      "blocked": false,
+      "hazard_exposure": 0.12,
+      "hazard_types": [],
+      "source": "Road survey 2026-09-16"
+    },
+    {
+      "id": "R-003",
+      "from_node": "habitation-1",
+      "to_node": "junction-b",
+      "distance_km": 2.0,
+      "travel_time_minutes": 16,
+      "accessibility": "LIMITED",
+      "blocked": false,
+      "hazard_exposure": 0.45,
+      "hazard_types": ["flooding"],
+      "source": "Flood map overlay 2026-09-16"
+    },
+    {
+      "id": "R-004",
+      "from_node": "junction-b",
+      "to_node": "destination-2",
+      "distance_km": 4.0,
+      "travel_time_minutes": 18,
+      "accessibility": "LIMITED",
+      "blocked": false,
+      "hazard_exposure": 0.50,
+      "hazard_types": ["flooding"],
+      "source": "Flood map overlay 2026-09-16"
+    },
+    {
+      "id": "R-005",
+      "from_node": "junction-a",
+      "to_node": "destination-2",
+      "distance_km": 4.0,
+      "travel_time_minutes": null,
+      "accessibility": "OPEN",
+      "blocked": null,
+      "hazard_exposure": null,
+      "hazard_types": [],
+      "source": "Road inventory 2026-09-16"
+    },
+    {
+      "id": "R-006",
+      "from_node": "habitation-1",
+      "to_node": "destination-1",
+      "distance_km": 5.0,
+      "travel_time_minutes": 12,
+      "accessibility": "BLOCKED",
+      "blocked": true,
+      "hazard_exposure": 0.02,
+      "hazard_types": ["landslide"],
+      "source": "Incident report 2026-09-16"
+    }
+  ],
+  "alerts": [
+    {
+      "alert_id": "AVASYA-2026-09-16-H001",
+      "hazard": "Flooding",
+      "severity": "HIGH",
+      "affected_habitation": "Riverbank Hamlet",
+      "reason": "Flood overlay intersects the limited-access east route and vulnerable habitation boundary.",
+      "recommended_action": "Begin relocation assessment toward North Relief Centre; confirm capacity before movement.",
+      "response_window": "Within 2 hours",
+      "source": "Flood map overlay 2026-09-16",
+      "official_source": false
+    }
+  ]
+}

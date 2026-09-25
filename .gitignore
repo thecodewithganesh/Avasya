@@ -1,0 +1,46 @@
+
+__pycache__/
+*.pyc
+
+# --- secrets / local env ---
+.env
+.env.local
+*.env
+!.env.example
+*.db
+
+# --- editor/agent local state ---
+.freebuff/
+.vscode/tasks/*
+
+# --- logs & scratch ---
+*.log
+pytest_*.txt
+rag_answer_live.json
+explain_live.json
+
+# --- python ---
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- heavy datasets (shared via drive/cloud, not git; GitHub rejects >100MB) ---
+data/raw/*.pbf
+data/raw/*.7z
+data/raw/*.zip
+data/raw/*.parquet
+data/raw/*.pdf
+data/raw/*.xlsx
+data/raw/*.png
+data/raw/infrastructure/
+data/raw/vb_soi_ap_geojson/
+data/raw/adminstrative/
+data/processed/census/
+data/processed/hazards/*.geojson
+data/processed/highways/
+data/processed/hospitals/*.geojson
+data/processed/boundaries/*.geojson
+data/processed/*.geojson
+
+# Local Netlify folder
+.netlify

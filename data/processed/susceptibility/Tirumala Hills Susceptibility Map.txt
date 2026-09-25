@@ -1,0 +1,16 @@
+Esri, TomTom, Garmin, METI/NASA, USGS
+13°38'N
+79°19'44"E 79°25'49"E
+13°38'2"N
+13°41'46"N
+79°25'48"E79°19'43"E
+13°41'44"N
+Meso scale (1:10000) Landslide Susceptibility Mapping in parts of Tirumala Hills,
+Chitoor District, Andhra Pradesh
+±
+0 1 2 3 40.5
+Kilometers
+High
+Moderate
+Low
+Susceptibility

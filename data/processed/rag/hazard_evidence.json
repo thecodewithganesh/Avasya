@@ -1,0 +1,13 @@
+{
+  "document_id": "hazard_evidence_001",
+  "content": "Hazard geospatial records and metadata",
+  "source": "data/processed/hazards/hazards_clean.geojson",
+  "source_type": "geojson",
+  "record_id": "hazard_evidence_001",
+  "data_origin": "MIXED",
+  "district": "NOT_AVAILABLE",
+  "state": "NOT_AVAILABLE",
+  "hazard_type": "flood",
+  "data_quality": "VALIDATED",
+  "last_updated": "2026-09-16T13:37:35Z"
+}

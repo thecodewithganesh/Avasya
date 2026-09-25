@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.freebuff
+.env
+.env.*
+!.env.example
+*.log
+*.py
+tsconfig.tsbuildinfo
+docs
+README.md
