@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import type { EvidenceRecord } from "@/types/rag";
-import { searchEvidence } from "@/lib/evidence-api";
+import { searchEvidence, EVIDENCE_DATA_MODE } from "@/lib/evidence-api";
 import EvidenceCard from "@/components/ui/evidence-card";
+import DataProvenanceBadge from "@/components/ui/data-provenance-badge";
 import { RowSkeleton } from "@/components/ui/data-states";
+import type { DataProvenance } from "@/types/api";
 
 const EXAMPLES = ["flood shelter capacity", "road accessibility", "historical floods", "waterlogging"];
 
@@ -15,6 +17,8 @@ const EXAMPLES = ["flood shelter capacity", "road accessibility", "historical fl
  * a web search. Live mode hits POST /evidence/search: the backend runs RAG
  * (pgvector) when the corpus is indexed and falls back to keyword ranking
  * while it is not; the response's retrievalMethod documents which engine ran.
+ * The corpus badge is DERIVED from the response's dataOrigin — never a
+ * hardcoded "SYNTHETIC DEMO CORPUS" label that mislabels a live corpus.
  */
 export default function EvidenceExplorer() {
   const [query, setQuery] = useState("");
@@ -22,6 +26,8 @@ export default function EvidenceExplorer() {
   const [results, setResults] = useState<EvidenceRecord[]>([]);
   const [error, setError] = useState<string>();
   const [searched, setSearched] = useState("");
+  const [resultOrigin, setResultOrigin] = useState<DataProvenance>("UNAVAILABLE");
+  const [retrievalMethod, setRetrievalMethod] = useState<string | null>(null);
 
   const run = async (term: string) => {
     setState("loading");
@@ -30,6 +36,8 @@ export default function EvidenceExplorer() {
       const result = await searchEvidence(term);
       setResults(result.results);
       setSearched(result.query);
+      setResultOrigin(result.results.length > 0 ? result.dataOrigin : "UNAVAILABLE");
+      setRetrievalMethod(result.retrievalMethod ?? null);
       setState("done");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Evidence retrieval failed.");
@@ -37,21 +45,20 @@ export default function EvidenceExplorer() {
     }
   };
 
-  // Fire the default example on mount so the explorer never opens blank.
-  useEffect(() => {
-    const timer = setTimeout(() => run(EXAMPLES[0]), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="space-y-4">
       <section className="panel glow-top border-accent/25 p-5">
-        <div className="eyebrow text-accent">EVIDENCE / RAG EXPLORER</div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="eyebrow text-accent">EVIDENCE / RAG EXPLORER</div>
+          {EVIDENCE_DATA_MODE === "MOCK" && (
+            <span className="rounded-[3px] border border-insight/40 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-insight">MOCK CLIENT</span>
+          )}
+        </div>
         <h1 className="mt-1.5 font-display text-xl font-semibold text-[var(--color-fg)]">Retrieve evidence from the corpus</h1>
         <p className="mt-1.5 max-w-2xl text-[12px] leading-5 text-[var(--color-fg-2)]">
-          Semantic retrieval over the AVASYA evidence store — E5 embeddings + pgvector, with
-          transparent keyword fallback while the corpus is unindexed. Internal document retrieval
-          for decision support: not a web search, and never a risk calculation.
+          Retrieval over the AVASYA evidence store — semantic (E5 + pgvector) when the corpus is
+          indexed, with a transparent keyword fallback otherwise. Internal document retrieval for
+          decision support: not a web search, and never a risk calculation.
         </p>
 
         <form
@@ -110,9 +117,16 @@ export default function EvidenceExplorer() {
 
       {state === "done" && results.length > 0 && (
         <section aria-live="polite">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="eyebrow">{results.length} EVIDENCE RECORD{results.length === 1 ? "" : "S"} · “{searched}”</div>
-            <span className="rounded-[3px] border border-medium/40 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-medium">SYNTHETIC DEMO CORPUS</span>
+            <span className="flex items-center gap-1.5">
+              {retrievalMethod && (
+                <span className="mono text-[9px] tracking-[0.06em] text-[var(--color-fg-3)]" title={`Retrieval engine: ${retrievalMethod}`}>
+                  {retrievalMethod.toUpperCase()}
+                </span>
+              )}
+              <DataProvenanceBadge provenance={resultOrigin} />
+            </span>
           </div>
           <div className="mt-3 space-y-2.5">
             {results.map((record, index) => (

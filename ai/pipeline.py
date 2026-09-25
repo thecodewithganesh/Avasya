@@ -192,9 +192,22 @@ def _load_destinations(path: Path) -> list[Destination]:
     return [Destination.model_validate(r) for r in records]
 
 
+def _destinations_path() -> Path:
+    """Resolve the destinations dataset.
+
+    Prefers data/destinations.json when present; falls back to the processed
+    destinations_clean.json (same schema) so the standalone CLI also runs in
+    checkouts that only carry the processed artifact.
+    """
+    primary = BASE_DIR / "data" / "destinations.json"
+    if primary.exists():
+        return primary
+    return BASE_DIR / "data" / "processed" / "destinations" / "destinations_clean.json"
+
+
 def main() -> None:
     evidence_path = BASE_DIR / "data" / "habitation_evidence.json"
-    destinations_path = BASE_DIR / "data" / "destinations.json"
+    destinations_path = _destinations_path()
 
     habitations = _load_evidence(evidence_path)
     destinations = _load_destinations(destinations_path)

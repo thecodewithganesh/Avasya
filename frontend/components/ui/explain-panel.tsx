@@ -3,15 +3,16 @@
 import { useState } from "react";
 import type { AiExplanation } from "@/types/rag";
 import { explainWithAvasya } from "@/lib/evidence-api";
-import type { Habitation, Recommendation, RiskAssessment } from "@/types/api";
+import type { DataProvenance, Habitation, Recommendation, RiskAssessment } from "@/types/api";
 import EvidenceCard from "@/components/ui/evidence-card";
+import DataProvenanceBadge from "@/components/ui/data-provenance-badge";
 
 /**
  * EXPLAIN WITH AVASYA — risk result + retrieved evidence + explanation.
- * In mock mode the "explanation" is a clearly labeled SYNTHETIC DEMO
- * restatement of persisted values; in live mode the loader throws until M's
- * Qwen3 endpoint exists, and the panel shows an honest LLM-unavailable state.
- * The rule engine computes the risk — the LLM only explains it.
+ * The output badge is DERIVED from the explanation's model/dataOrigin: mock
+ * mode produces SYNTHETIC DEMO; a live LLM run must not be mislabelled, and
+ * an extractive run is labelled as such. The rule engine computes the risk —
+ * the explanation layer only restates it.
  */
 export default function ExplainPanel({
   habitation,
@@ -75,7 +76,12 @@ export default function ExplainPanel({
         <div className="mt-4 fade-up">
           <div className="flex items-center justify-between gap-3">
             <div className="eyebrow">AVASYA:</div>
-            <span className="rounded-[3px] border border-medium/40 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-medium">SYNTHETIC DEMO OUTPUT</span>
+            <span className="flex items-center gap-2">
+              {explanation.model && (
+                <span className="mono text-[9px] tracking-[0.06em] text-[var(--color-fg-3)]">{explanation.model.toUpperCase()}</span>
+              )}
+              <DataProvenanceBadge provenance={(explanation.dataOrigin ?? "UNKNOWN") as DataProvenance} />
+            </span>
           </div>
           <p className="mt-2 border-l-2 border-accent/60 pl-3 text-[13px] leading-6 text-[var(--color-fg)]">{explanation.explanation}</p>
           <p className="mt-2 text-[10px] leading-4 text-[var(--color-fg-3)]">

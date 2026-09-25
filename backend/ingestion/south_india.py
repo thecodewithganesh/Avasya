@@ -28,7 +28,7 @@ from geoalchemy2.elements import WKTElement
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.core.database import SessionLocal
+from backend.core.database import SessionLocal, make_wkt_element
 from backend.models import Destination, Evidence, Habitation, Hazard, HabitationHazard
 from backend.models.enums import DataOrigin
 from backend.services.decision import DecisionService
@@ -137,7 +137,7 @@ def ingest_villages(db: Session, csv_path: Path, limit: int) -> int:
             country="India",
             latitude=lat,
             longitude=lon,
-            geom=WKTElement(f"SRID=4326;POINT({lon} {lat})", srid=4326),
+            geom=make_wkt_element(f"SRID=4326;POINT({lon} {lat})", srid=4326),
             population=max(0, population),
             data_origin=DataOrigin.REAL,
         ))
@@ -221,7 +221,7 @@ def ingest_floods(db: Session, geojson_path: Path) -> int:
             ),
             severity_score=severity,
             probability_score=None,
-            geom=WKTElement(f"SRID=4326;POINT({lon} {lat})", srid=4326) if centroid else None,
+            geom=make_wkt_element(f"SRID=4326;POINT({lon} {lat})", srid=4326) if centroid else None,
             data_origin=DataOrigin.REAL,
         )
         db.add(hazard)
@@ -353,7 +353,7 @@ def ingest_hospitals(db: Session, csv_path: Path, per_state: int = 400) -> int:
                         try:
                             dlat, dlon = (float(part) for part in location.split(",", 1))
                             if -90 <= dlat <= 90 and 60 <= dlon <= 100:
-                                geom = WKTElement(f"SRID=4326;POINT({dlon} {dlat})", srid=4326)
+                                geom = make_wkt_element(f"SRID=4326;POINT({dlon} {dlat})", srid=4326)
                         except ValueError:
                             geom = None
                     db.add(Destination(

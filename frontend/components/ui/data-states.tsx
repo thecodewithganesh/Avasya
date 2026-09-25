@@ -46,12 +46,19 @@ export function EmptyState({ title, description }: { title: string; description?
   );
 }
 
-export function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+/**
+ * Generic error state. The old version asserted "The data service did not
+ * respond" for every failure — that collapses NETWORK_ERROR, NO DATA and
+ * DATA_UNAVAILABLE into one lie. Pages that know the ApiError kind should use
+ * TaxonomyErrorState (ui/error-state.tsx); this one stays for callers that
+ * only have a boolean, and its subtitle no longer asserts a network failure.
+ */
+export function ErrorState({ message, detail, onRetry }: { message: string; detail?: string; onRetry: () => void }) {
   return (
     <div role="alert" className="panel flex min-h-36 flex-col items-center justify-center p-8 text-center">
       <AlertTriangle size={20} className="text-immediate" aria-hidden="true" />
       <div className="mt-3 font-display text-sm font-semibold text-[var(--color-fg)]">{message}</div>
-      <p className="mt-1.5 text-xs text-[var(--color-fg-3)]">The data service did not respond. Nothing has changed on your side.</p>
+      <p className="mt-1.5 text-xs text-[var(--color-fg-3)]">{detail ?? "The request could not be completed. Nothing has changed on your side."}</p>
       <button onClick={onRetry} className="btn btn-outline mt-4">
         Retry
       </button>

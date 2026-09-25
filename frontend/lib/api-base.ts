@@ -20,3 +20,19 @@ export const SERVER_API_V1 =
   typeof window === "undefined" && process.env.SERVER_SIDE_API_URL
     ? `${process.env.SERVER_SIDE_API_URL.replace(/\/$/, "")}/api/v1`
     : API_V1;
+
+/**
+ * Single source of truth for the LIVE/DEMO data-mode switch (audit Part 14).
+ * LIVE is the default: an unset env var must never silently downgrade the UI
+ * to synthetic data. DEMO requires explicit opt-in via
+ * NEXT_PUBLIC_DATA_MODE=demo (preferred) or NEXT_PUBLIC_USE_MOCK_DATA=true;
+ * the legacy ="false" kill-switch is still honoured.
+ */
+export function resolveUseMockData(): boolean {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "false") return false;
+  if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") return true;
+  const dataMode = (process.env.NEXT_PUBLIC_DATA_MODE || "").toLowerCase();
+  if (dataMode === "demo" || dataMode === "mock") return true;
+  if (dataMode === "live") return false;
+  return false;
+}

@@ -39,6 +39,9 @@ export interface EvidenceQueryResult {
   results: EvidenceRecord[];
   /** Retrieval corpus provenance, as supplied by the backend. */
   dataOrigin: DataOrigin | "UNAVAILABLE";
+  /** Which retrieval engine answered ("semantic …" | "keyword …"), as supplied
+   *  by the backend. Null when the caller did not request it (mock mode). */
+  retrievalMethod?: string | null;
 }
 
 export interface EvidenceBundle {

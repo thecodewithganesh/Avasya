@@ -43,20 +43,22 @@ import {
  * Dual-mode API client.
  *
  *  LIVE  — talks to M's FastAPI at NEXT_PUBLIC_API_URL using the documented
- *          /api/v1 contract (handbook §11–20).
- *  MOCK  — serves the local synthetic demo dataset (current default so the
- *          UI demo never depends on M's database being up).
+ *          /api/v1 contract (handbook §11–20). THIS IS THE DEFAULT: an unset
+ *          env var must never silently downgrade the UI to synthetic data
+ *          (audit Part 14 — accidental demo mode is dangerous).
+ *  MOCK  — serves the local synthetic demo dataset ONLY when explicitly
+ *          opted in via NEXT_PUBLIC_USE_MOCK_DATA=true (or NEXT_PUBLIC_DATA_MODE=demo).
  *
  * Errors follow M's taxonomy: 401 auth, 404 not-found, 422 validation,
  * 503 evidence/dependency unavailable.
  */
 
-import { API_V1, SERVER_API_V1 } from "@/lib/api-base";
+import { API_V1, SERVER_API_V1, resolveUseMockData } from "@/lib/api-base";
 
 /** Demo officer identity — the documented local auth mechanism (§19). */
 const OFFICER_EMAIL = process.env.NEXT_PUBLIC_DEMO_OFFICER_EMAIL || "demo.officer@avasya.local";
 
-export const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
+export const USE_MOCK_DATA = resolveUseMockData();
 export const API_MODE: "LIVE" | "MOCK" = USE_MOCK_DATA ? "MOCK" : "LIVE";
 
 function mockWireId(value: string): string {
@@ -254,7 +256,9 @@ function firstHazardHint(risk: RiskAssessment | null): string | null {
 }
 
 function destinationStatus(wire: WireCapacityAssessment | null, eligible: boolean): DestinationStatus {
-  if (!wire) return "UNSAFE";
+  // No capacity assessment = capacity data UNAVAILABLE, not UNSAFE. Labelling
+  // unassessed destinations "UNSAFE" fabricated a verdict from missing data.
+  if (!wire) return "LIMITED";
   if (eligible && (wire.capacity_gap ?? 0) > 1000) return "AVAILABLE";
   if (eligible) return "LIMITED";
   return (wire.usable_capacity ?? 0) <= 0 ? "UNSAFE" : "FULL";
@@ -461,20 +465,21 @@ export async function getEligibleDestinations(habitationId: string): Promise<Des
 
 export async function getDestinations(): Promise<Destination[]> {
   if (USE_MOCK_DATA) return mockDestinations;
-  // Live mode derives the destination register from capacity assessments of
-  // known recommendations; /destinations list endpoint is not in the contract,
-  // so we surface whatever the demo recommendation chain exposes.
-  const recommendation = await getJson<WireRecommendation>(`/habitations/1/recommendation`).catch(() => null);
-  const results: Destination[] = [];
-  if (recommendation?.destination_id) {
-    const capacity = await getJson<WireCapacityAssessment>(`/destinations/${recommendation.destination_id}/capacity`);
-    results.push(
-      adaptDestination(
-        { id: recommendation.destination_id, name: `Destination ${recommendation.destination_id}`, data_origin: capacity.data_origin },
-        capacity,
-      ),
-    );
-  }
+  // Live mode has no /destinations list endpoint in the contract. Derive the
+  // register from the decision queue (every destination actually selected by
+  // a recommendation, with its own capacity assessment) instead of hardcoding
+  // habitation 1 — inventing "Destination {id}" names for unassessed rows
+  // fabricated entities the backend never described.
+  const queue = await getJson<WireRecommendationQueueEntry[]>("/recommendations?limit=500&include_decided=true").catch(() => [] as WireRecommendationQueueEntry[]);
+  const destinationIds = [...new Set(queue.map((entry) => entry.destination_id).filter((id): id is number => id !== null))];
+  const results = await Promise.all(
+    destinationIds.map(async (id) => {
+      const capacity = await getJson<WireCapacityAssessment>(`/destinations/${id}/capacity`).catch(() => null);
+      const entry = queue.find((item) => item.destination_id === id);
+      const name = entry?.destination_name ?? `Destination ${id}`;
+      return adaptDestination({ id, name, data_origin: capacity?.data_origin ?? "UNKNOWN" as DataOrigin }, capacity);
+    }),
+  );
   return results;
 }
 

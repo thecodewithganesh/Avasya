@@ -56,7 +56,7 @@ export default function HabitationsPage() {
             (hazard === "ALL" || item.hazard === hazard) &&
             (district === "ALL" || item.district === district) &&
             (state === "ALL" || item.state === state) &&
-            (evidence === "ALL" || (evidence === "AVAILABLE" ? (item.factors?.length ?? 0) > 0 : item.warnings.length > 0)),
+            (evidence === "ALL" || (evidence === "AVAILABLE" ? item.riskScore !== null : item.warnings.length > 0)),
         )
         .sort((a, b) => (sort === "risk" ? (b.riskScore ?? -1) - (a.riskScore ?? -1) : (b.population ?? 0) - (a.population ?? 0))),
     [data, district, evidence, hazard, priority, query, risk, sort, state],
@@ -91,7 +91,12 @@ export default function HabitationsPage() {
           ["IMMEDIATE", summary.immediate.toLocaleString(), "text-immediate"],
           ["HIGH RISK", summary.high.toLocaleString(), "text-short"],
           ["POPULATION AT RISK", summary.population.toLocaleString(), "text-accent"],
-          ["EVIDENCE COVERAGE", data.filter((item) => (item.factors?.length ?? 0) > 0).length === data.length ? "AVAILABLE" : data.some((item) => (item.factors?.length ?? 0) > 0) ? "PARTIAL" : "UNAVAILABLE", "text-[var(--color-fg-2)]"],
+          // Coverage criterion: a PERSISTED RISK ASSESSMENT exists for the
+          // habitation (riskScore comes from the backend's decision queue).
+          // The old factors.length test could never pass on list data (the
+          // queue endpoint omits contributions), which permanently showed a
+          // false UNAVAILABLE even when every habitation was assessed.
+          ["EVIDENCE COVERAGE", data.every((item) => item.riskScore !== null) ? "AVAILABLE" : data.some((item) => item.riskScore !== null) ? "PARTIAL" : "UNAVAILABLE", "text-[var(--color-fg-2)]"],
         ].map(([label, value, tone]) => (
           <div key={label} className="bg-surface p-4">
             <div className="eyebrow">{label}</div>
@@ -169,7 +174,7 @@ export default function HabitationsPage() {
                     <td>
                       <PriorityBadge priority={item.priority} />
                     </td>
-                    <td><div className="flex flex-col gap-1"><DataProvenanceBadge provenance={item.factors?.length ? item.dataOrigin : "UNAVAILABLE"} /><span className="text-[9px] font-semibold tracking-[0.1em] text-[var(--color-fg-3)]">{item.factors?.length ? (item.warnings.length ? "PARTIAL EVIDENCE" : "EVIDENCE AVAILABLE") : "EVIDENCE UNAVAILABLE"}</span></div></td>
+                    <td><div className="flex flex-col gap-1"><DataProvenanceBadge provenance={item.riskScore !== null ? item.dataOrigin : "UNAVAILABLE"} /><span className="text-[9px] font-semibold tracking-[0.1em] text-[var(--color-fg-3)]">{item.riskScore !== null ? (item.warnings.length ? "PARTIAL EVIDENCE" : "EVIDENCE AVAILABLE") : "EVIDENCE UNAVAILABLE"}</span></div></td>
                     <td className="text-right">
                       <Link href={`/habitations/${item.id}`} className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent transition-colors hover:text-[var(--color-fg)]" aria-label={`Open ${item.name} details`}>
                         VIEW DOSSIER <ArrowRight size={12} />

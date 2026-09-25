@@ -189,13 +189,17 @@ export default function HistoryLogsPage() {
       {/* Officer decision history — API-confirmed records only */}
       <DecisionHistory />
 
-      {/* Log entries */}
+      {/* Log entries — illustrative fixtures, NOT persisted system events.
+          The officer decision history above is the API-backed audit trail. */}
       <section className="panel overflow-hidden">
         <div className="border-b border-[var(--color-line)] px-4 py-3">
           <div className="flex items-center gap-2">
             <FileText size={14} className="text-[var(--color-fg-3)]" />
             <span className="font-display text-[13px] font-semibold text-[var(--color-fg)]">
-              Activity Log
+              Synthetic demo activity — illustrative only
+            </span>
+            <span className="rounded-[3px] border border-medium/40 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-medium">
+              SYNTHETIC DEMO · NOT PERSISTED
             </span>
             <span className="ml-auto text-[10px] text-[var(--color-fg-3)]">
               {filteredLogs.length} entries

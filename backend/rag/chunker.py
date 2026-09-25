@@ -147,13 +147,19 @@ def chunk_evidence(evidence: Evidence) -> list[ChunkRecord]:
             text=chunk,
             source=source,
             # Store provenance metadata so the retriever can surface it
-            # without joining back to the evidence table.
+            # without joining back to the evidence table. data_origin is
+            # carried through so a SYNTHETIC_DEMO chunk can never be
+            # relabelled downstream (audit Part C / Part 28).
             metadata={
                 "source_name": evidence.source_name,
                 "source_url": evidence.source_url,
                 "external_reference": evidence.external_reference,
                 "hazard_id": evidence.hazard_id,
                 "risk_assessment_id": evidence.risk_assessment_id,
+                "data_origin": evidence.data_origin.value
+                if hasattr(evidence.data_origin, "value")
+                else str(evidence.data_origin),
+                "verification": None,  # not tracked on evidence rows yet — honest null
             },
         )
         for idx, chunk in enumerate(text_chunks)

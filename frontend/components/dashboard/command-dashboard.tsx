@@ -364,6 +364,16 @@ export default function CommandDashboard() {
     setRetryKey((key) => key + 1);
   };
 
+  // DATA SOURCE is provenance of the loaded records, not API health (audit
+  // Part 15): a LIVE API serving a synthetic-seeded database is SYNTHETIC,
+  // not "LIVE DATA".
+  const loadedOrigin = useMemo(() => {
+    const origins = new Set(habitationalData.map((item) => item.dataOrigin));
+    if (origins.size === 0) return "UNAVAILABLE" as const;
+    if (origins.size > 1) return "MIXED" as const;
+    return [...origins][0];
+  }, [habitationalData]);
+
   if (loading) return <DashboardSkeleton />;
   if (error) return <ErrorState message="Unable to load operational data." onRetry={retry} />;
   if (habitationalData.length === 0)
@@ -379,8 +389,9 @@ export default function CommandDashboard() {
             Disaster relocation decision support
           </h2>
           <div className="mt-2.5 flex items-center gap-2 text-[11px]">
-            <span className="dot" style={{ background: "var(--color-insight)" }} aria-hidden="true" />
-            <span className={`font-display font-semibold tracking-[0.12em] ${API_MODE === "LIVE" ? "text-safe" : "text-insight"}`}>{API_MODE === "LIVE" ? "LIVE DATA" : "DEMO DATA"}</span>
+            <span className="dot" style={{ background: loadedOrigin === "REAL" ? "var(--color-safe)" : "var(--color-insight)" }} aria-hidden="true" />
+            <DataProvenanceBadge provenance={loadedOrigin} />
+            <span className="font-display font-semibold tracking-[0.12em] text-[var(--color-fg-2)]">{API_MODE === "LIVE" ? "LIVE API" : "DEMO CLIENT"}</span>
             <span className="text-[var(--color-fg-3)]">· {pendingHabitations.length} ACTIVE CASES</span>
           </div>
         </div>

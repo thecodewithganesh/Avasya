@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { CopilotMessage, EvidenceRecord } from "@/types/rag";
-import type { Habitation } from "@/types/api";
-import { explainWithAvasya, getHabitationEvidence, searchEvidence } from "@/lib/evidence-api";
+import type { DataProvenance, Habitation } from "@/types/api";
+import { explainWithAvasya, getHabitationEvidence, searchEvidence, EVIDENCE_DATA_MODE } from "@/lib/evidence-api";
 import DataProvenanceBadge from "@/components/ui/data-provenance-badge";
 
 const SUGGESTED = [
@@ -21,6 +22,19 @@ const errorText: Record<NonNullable<CopilotMessage["error"]>, string> = {
   "retrieval-failed": "Evidence retrieval failed — no answer was generated.",
   "connection-unavailable": "Connection unavailable — AVASYA CoPilot cannot reach the backend.",
 };
+
+/** Provenance of an AVASYA answer: derived from the citations it actually
+ *  used (REAL evidence → REAL/MIXED badge; synthetic corpus → SYNTHETIC DEMO;
+ *  no citations → the answer came from persisted structured data only). */
+function answerProvenance(message: CopilotMessage): DataProvenance {
+  const citations = message.citations ?? [];
+  if (citations.length === 0) return "UNKNOWN";
+  const origins = new Set(citations.map((record) => record.origin));
+  if (origins.size > 1) return "MIXED";
+  const only = [...origins][0];
+  if (only === "REAL" || only === "SYNTHETIC_DEMO" || only === "MIXED") return only;
+  return "UNKNOWN";
+}
 
 /**
  * AVASYA COPILOT — evidence-grounded officer assistant drawer.
@@ -123,9 +137,17 @@ export default function CopilotDrawer({ habitation, onClose }: { habitation: Hab
       }
       const fallback = await searchEvidence(trimmed).catch(() => undefined);
       if (fallback && fallback.results.length > 0) {
+        const storeLabel =
+          EVIDENCE_DATA_MODE === "MOCK"
+            ? "the synthetic demo store"
+            : fallback.dataOrigin === "REAL"
+              ? "the evidence store"
+              : fallback.dataOrigin === "MIXED"
+                ? "the evidence store (mixed provenance — synthetic records included)"
+                : "the evidence store";
         setMessages((current) => [
           ...current.filter((m) => m.id !== pendingId),
-          answer(`${fallback.results.length} evidence record(s) matched those terms in the synthetic demo store.`, fallback.results.slice(0, 2)),
+          answer(`${fallback.results.length} evidence record(s) matched those terms in ${storeLabel}.`, fallback.results.slice(0, 2)),
         ]);
         return;
       }
@@ -141,10 +163,15 @@ export default function CopilotDrawer({ habitation, onClose }: { habitation: Hab
     }
   };
 
-  return (
+  // Portal to document.body: a filled CSS transform animation on an ancestor
+  // (e.g. .fade-up) makes that ancestor the containing block for position:fixed
+  // descendants, which stretched this drawer across the whole page and left
+  // its messages scrolled out of view (screenshot-D root cause, together with
+  // the transparent var(--color-bg) panel). body is never transformed.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end bg-[var(--overlay-scrim)]" role="presentation" onClick={onClose}>
       <aside
-        className="flex h-full w-full max-w-md flex-col border-l border-[var(--color-line)] bg-[var(--color-bg)] shadow-2xl"
+        className="flex h-full w-full max-w-md flex-col border-l border-[var(--color-line)] bg-surface shadow-2xl"
         role="complementary"
         aria-label="AVASYA CoPilot"
         onClick={(event) => event.stopPropagation()}
@@ -191,7 +218,7 @@ export default function CopilotDrawer({ habitation, onClose }: { habitation: Hab
                   <div className="mr-4 border border-[var(--color-line)] bg-[var(--panel-wash)] p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="eyebrow text-[9px]">AVASYA</span>
-                      <DataProvenanceBadge provenance="SYNTHETIC_DEMO" />
+                      <DataProvenanceBadge provenance={answerProvenance(message)} />
                     </div>
                     <p className="mt-1.5 text-[12px] leading-5 text-[var(--color-fg)]">{message.text}</p>
                     {message.citations.length > 0 && (
@@ -232,6 +259,7 @@ export default function CopilotDrawer({ habitation, onClose }: { habitation: Hab
           </button>
         </form>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }

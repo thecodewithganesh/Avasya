@@ -2,7 +2,7 @@ import type { EvidenceRecord } from "@/types/rag";
 import DataProvenanceBadge from "@/components/ui/data-provenance-badge";
 
 const typeLabel: Record<string, string> = {
-  REPORT: "GOVERNMENT SOURCE",
+  REPORT: "SOURCE RECORD",
   HISTORICAL_EVENT: "HISTORICAL EVENT",
   FIELD_SURVEY: "FIELD SURVEY",
   ASSESSMENT: "ASSESSMENT RECORD",
@@ -10,8 +10,12 @@ const typeLabel: Record<string, string> = {
 };
 
 /** Compact evidence card. Renders only supplied fields; missing ones are
- *  omitted or shown as NOT AVAILABLE — never fabricated. */
+ *  omitted or shown as NOT AVAILABLE — never fabricated. "GOVERNMENT SOURCE"
+ *  is reserved for records whose provenance is REAL; a synthetic report row
+ *  must never borrow government-looking language (audit Part 25). */
 export default function EvidenceCard({ evidence, rank }: { evidence: EvidenceRecord; rank?: number }) {
+  const isReal = evidence.origin === "REAL";
+  const label = evidence.sourceType === "REPORT" && isReal ? "GOVERNMENT SOURCE" : typeLabel[evidence.sourceType] ?? typeLabel.UNSPECIFIED;
   return (
     <article className="border border-[var(--color-line)] bg-[var(--panel-wash)] p-4 transition-colors hover:border-accent/40">
       <div className="flex items-start justify-between gap-3">
@@ -21,7 +25,7 @@ export default function EvidenceCard({ evidence, rank }: { evidence: EvidenceRec
             <h3 className="truncate font-display text-[14px] font-semibold text-[var(--color-fg)]">{evidence.title ?? "TITLE NOT SUPPLIED"}</h3>
           </div>
           <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-fg-3)]">
-            {typeLabel[evidence.sourceType] ?? typeLabel.UNSPECIFIED}
+            {label}
           </div>
         </div>
         <DataProvenanceBadge provenance={evidence.origin} />

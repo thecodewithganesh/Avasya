@@ -91,10 +91,14 @@ def hazardapi_assess(habitation_id: int | None = Query(default=None), db: Sessio
         payload = evidence_by_hazard.get(hazard.id, {})
         geometry = payload.get("geometry")
         if geometry is None and hazard.geom is not None:
-            from geoalchemy2.shape import to_shape
             from shapely.geometry import mapping
 
-            geometry = mapping(to_shape(hazard.geom))
+            from backend.services.geometry_utils import parse_any_geometry
+
+            try:
+                geometry = mapping(parse_any_geometry(hazard.geom))
+            except ValueError:
+                continue  # unparseable geometry: the engine cannot assess it
         if geometry is None:
             continue  # no geometry: the engine cannot assess; DATA_UNAVAILABLE is emitted per-habitation
         observed = hazard.updated_at or hazard.created_at

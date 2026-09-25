@@ -48,9 +48,9 @@ function DemoModePanel() {
 }
 
 const services = [
-  ["DATA SERVICE", API_MODE === "LIVE" ? "LIVE API" : "DEMO DATASET", API_MODE === "LIVE" ? "Connected to the operational backend contract." : "Frontend demo dataset — no live backend connection.", API_MODE === "LIVE" ? "text-safe" : "text-insight"],
+  ["DATA SERVICE", API_MODE === "LIVE" ? "LIVE API · MIXED DATA" : "DEMO DATASET", API_MODE === "LIVE" ? "Backend contract connected; served records mix REAL and SYNTHETIC_DEMO provenance — see badges per record." : "Frontend demo dataset — no live backend connection.", API_MODE === "LIVE" ? "text-safe" : "text-insight"],
   ["GIS TILES", "OPEN BASEMAP", "Free OpenStreetMap-compatible tiles, no API key.", "text-safe"],
-  ["DECISION ENGINE", "SUPPLIED VALUES", "All risk and capacity values arrive pre-computed.", "text-safe"],
+  ["DECISION ENGINE", "BACKEND-COMPUTED", "Risk and capacity values are computed by the backend engine, not the UI.", "text-safe"],
 ] as const;
 
 export default function SettingsPage() {

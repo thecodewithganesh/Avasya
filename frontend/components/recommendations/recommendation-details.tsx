@@ -11,7 +11,8 @@ import PriorityBadge from "@/components/ui/priority-badge";
 import RiskScore from "@/components/ui/risk-score";
 import Stat from "@/components/ui/stat";
 import { entityCode, entityName, fmtNum, fmtScore } from "@/lib/format";
-import { DashboardSkeleton, EmptyState, ErrorState } from "@/components/ui/data-states";
+import { DashboardSkeleton, EmptyState } from "@/components/ui/data-states";
+import { TaxonomyErrorState } from "@/components/ui/error-state";
 import SpatialEvidencePanel from "@/components/ui/spatial-evidence-panel";
 import DataProvenanceBadge from "@/components/ui/data-provenance-badge";
 
@@ -75,7 +76,14 @@ export default function RecommendationDetails({ id }: { id: string }) {
     setRetry((value) => value + 1);
   };
   if (loading) return <DashboardSkeleton />;
-  if (error) return <ErrorState message="Unable to load relocation recommendation." onRetry={retryLoad} />;
+  if (error)
+    return (
+      <TaxonomyErrorState
+        error={error}
+        onRetry={retryLoad}
+        headline="Unable to load relocation recommendation."
+      />
+    );
   if (!recommendation || !habitation) return <EmptyState title="No recommendation found." description={`No recommendation is available for ${id}.`} />;
 
   const alternative = recommendation.alternativeDestinationId ? destinations.find((d) => d.id === recommendation.alternativeDestinationId) : undefined;

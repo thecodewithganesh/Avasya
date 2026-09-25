@@ -9,6 +9,33 @@ from geoalchemy2.shape import to_shape
 EARTH_RADIUS_KM = 6371.0
 
 
+def parse_any_geometry(geom: Any) -> Any:
+    """Parse any persisted geometry form into a shapely shape.
+
+    Handles the production psycopg path (geoalchemy2 WKBElement), the SQLite
+    dev/test stack (SRID-prefixed WKT strings), WKTElement, GeoJSON dicts, and
+    raw shapely shapes. Raises ValueError for missing/unparseable geometry so
+    callers can skip the feature instead of inventing one (or 500-ing).
+    """
+    if geom is None:
+        raise ValueError("geometry is missing")
+    if isinstance(geom, dict) and "type" in geom:
+        from shapely.geometry import shape
+
+        return shape(geom)
+    if hasattr(geom, "geom_type") or hasattr(geom, "exterior"):
+        return geom  # already a shapely shape
+    if isinstance(geom, str):
+        wkt = geom.split(";", 1)[1] if ";" in geom else geom
+        from shapely import wkt as shapely_wkt
+
+        return shapely_wkt.loads(wkt)
+    try:
+        return to_shape(geom)
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f"geometry could not be parsed: {exc}") from exc
+
+
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Great-circle distance in km, rounded to metres. Used only as a
     straight-line proxy where road-network geometry is not loaded; callers

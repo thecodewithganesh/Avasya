@@ -40,17 +40,9 @@ app.include_router(rag_admin_router)
 @app.on_event("startup")
 def startup_event():
     if settings.DATABASE_URL.startswith("sqlite"):
-        from backend.core.database import engine
-        from backend.models import Base
-        from geoalchemy2 import Geometry
-        from pgvector.sqlalchemy import Vector
-        from sqlalchemy import Text, text
+        from backend.core.database import engine, init_db_schema
 
-        for table in Base.metadata.tables.values():
-            for column in table.columns:
-                if isinstance(column.type, (Geometry, Vector)):
-                    column.type = Text()
-        Base.metadata.create_all(bind=engine)
+        init_db_schema()
 
         try:
             from backend.core.database import SessionLocal

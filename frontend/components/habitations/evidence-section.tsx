@@ -2,14 +2,20 @@
 
 import { useEffect, useState } from "react";
 import type { EvidenceRecord } from "@/types/rag";
-import { getHabitationEvidence } from "@/lib/evidence-api";
+import { getHabitationEvidence, EVIDENCE_DATA_MODE } from "@/lib/evidence-api";
 import EvidenceCard from "@/components/ui/evidence-card";
+import DataProvenanceBadge from "@/components/ui/data-provenance-badge";
 import { RowSkeleton } from "@/components/ui/data-states";
+import type { DataProvenance } from "@/types/api";
 
-/** EVIDENCE section for one habitation — retrieval-backed, honestly stateful. */
+/** EVIDENCE section for one habitation — retrieval-backed, honestly stateful.
+ *  The corpus badge is DERIVED from the backend's bundle dataOrigin, never
+ *  hardcoded: a live store holding REAL rows must not be labelled as a demo
+ *  corpus (and vice versa). */
 export default function EvidenceSection({ habitationId }: { habitationId: string }) {
   const [state, setState] = useState<"loading" | "ready" | "empty" | "unavailable">("loading");
   const [records, setRecords] = useState<EvidenceRecord[]>([]);
+  const [bundleOrigin, setBundleOrigin] = useState<DataProvenance>("UNAVAILABLE");
 
   useEffect(() => {
     let active = true;
@@ -19,6 +25,7 @@ export default function EvidenceSection({ habitationId }: { habitationId: string
       .then((bundle) => {
         if (!active) return;
         setRecords(bundle.evidence);
+        setBundleOrigin(bundle.evidence.length > 0 ? bundle.dataOrigin : "UNAVAILABLE");
         setState(bundle.evidence.length > 0 ? "ready" : "empty");
       })
       .catch(() => active && setState("unavailable"));
@@ -34,7 +41,12 @@ export default function EvidenceSection({ habitationId }: { habitationId: string
           <div className="eyebrow text-accent">EVIDENCE</div>
           <h2 className="mt-1.5 font-display text-[15px] font-semibold text-[var(--color-fg)]">Retrieved records for this habitation</h2>
         </div>
-        <span className="rounded-[3px] border border-medium/40 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-medium">SYNTHETIC DEMO CORPUS</span>
+        <span className="flex items-center gap-1.5">
+          {EVIDENCE_DATA_MODE === "MOCK" && (
+            <span className="rounded-[3px] border border-insight/40 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-insight">MOCK CLIENT</span>
+          )}
+          <DataProvenanceBadge provenance={bundleOrigin} />
+        </span>
       </div>
 
       {state === "loading" && <div className="mt-4 space-y-2">{[0, 1].map((row) => <RowSkeleton key={row} rows={1} />)}</div>}

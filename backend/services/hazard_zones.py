@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from geoalchemy2.shape import to_shape
 from shapely.geometry import mapping, shape
 
 from sqlalchemy import select
@@ -14,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from backend.models import Evidence, Habitation, Hazard
 from backend.models.enums import DataOrigin
+from backend.services.geometry_utils import parse_any_geometry as _to_shapely
 
 METHODOLOGY_ID = "AVASYA-HAZZONE-COASTAL-V1"
 
@@ -71,31 +71,6 @@ def _as_float(value: Any) -> float | None:
         return None if value is None else float(value)
     except (TypeError, ValueError):
         return None
-
-
-def _to_shapely(geom: Any):
-    """Parse any persisted geometry form into a shapely shape.
-
-    Handles the production psycopg path (geoalchemy2 WKBElement), the SQLite
-    test stack (SRID-prefixed WKT strings), WKTElement, GeoJSON dicts, and raw
-    shapely shapes. Raises ValueError for missing/unparseable geometry so
-    callers skip the feature instead of inventing one.
-    """
-    if geom is None:
-        raise ValueError("geometry is missing")
-    if isinstance(geom, dict) and "type" in geom:
-        return shape(geom)
-    if hasattr(geom, "geom_type") or hasattr(geom, "exterior"):
-        return geom  # already a shapely shape
-    if isinstance(geom, str):
-        wkt = geom.split(";", 1)[1] if ";" in geom else geom
-        from shapely import wkt as shapely_wkt
-
-        return shapely_wkt.loads(wkt)
-    try:
-        return to_shape(geom)
-    except Exception as exc:  # noqa: BLE001
-        raise ValueError(f"geometry could not be parsed: {exc}") from exc
 
 
 def _severity_band(severity: float | None) -> str | None:

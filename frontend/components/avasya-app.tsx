@@ -76,7 +76,7 @@ function systemState(state: ApiState): { label: string; tone: string } {
   if (state === "live") return { label: "CONNECTED", tone: "text-safe" };
   if (state === "degraded") return { label: "STATUS UNKNOWN", tone: "text-immediate" };
   if (state === "probing") return { label: "CHECKING", tone: "text-[var(--color-fg-2)]" };
-  return { label: "SYNTHETIC DEMO", tone: "text-insight" };
+  return { label: "DEMO CLIENT", tone: "text-insight" };
 }
 
 /** Shared health probe — used by the header chip and the sidebar status block. */
@@ -101,7 +101,9 @@ function useApiState(): ApiState {
   return apiState;
 }
 
-/** §11 sidebar status block — SYSTEM STATUS / API / DATA, honest about demo mode. */
+/** §11 sidebar status block — health and DATA PROVENANCE are different axes
+ *  (audit Part 15): a healthy API says nothing about whether the underlying
+ *  records are REAL or SYNTHETIC_DEMO, so they are reported separately. */
 function SidebarStatus() {
   const apiState = useApiState();
   const state = systemState(apiState);
@@ -111,6 +113,11 @@ function SidebarStatus() {
       : apiState === "live"
         ? undefined
         : { background: "var(--color-insight)" };
+  // DATA SOURCE is the provenance of the records the UI serves, not the
+  // health probe: LIVE mode connected to a synthetic-seeded database is
+  // still SYNTHETIC DEMO, not "LIVE".
+  const dataSource = apiState === "live" ? "MIXED" : apiState === "degraded" ? "UNAVAILABLE" : "SYNTHETIC DEMO";
+  const dataSourceTone = apiState === "live" ? "text-[var(--color-fg-2)]" : apiState === "degraded" ? "text-immediate" : "text-insight";
   return (
     <div className="rounded-[6px] border border-[var(--color-line)] bg-[var(--panel-wash)] px-3 py-2.5" aria-label="System status">
       <div className="flex items-center justify-between">
@@ -124,12 +131,24 @@ function SidebarStatus() {
         <span className="flex items-center gap-1.5">
           API
           <span className={`font-display font-semibold ${apiState === "degraded" ? "text-immediate" : apiState === "live" ? "text-safe" : "text-insight"}`}>
-            {apiState === "live" ? "CONNECTED" : apiState === "degraded" ? "UNREACHABLE" : "DEMO DATASET"}
+            {apiState === "live" ? "HEALTHY" : apiState === "degraded" ? "UNREACHABLE" : "DEMO CLIENT"}
           </span>
         </span>
         <span className="flex items-center gap-1.5">
-          DATA
-          <span className="font-display font-semibold text-[var(--color-fg-2)]">{apiState === "live" ? "LIVE" : "SYNTHETIC"}</span>
+          DATABASE
+          <span className={`font-display font-semibold ${apiState === "live" ? "text-safe" : "text-[var(--color-fg-3)]"}`}>
+            {apiState === "live" ? "CONNECTED" : "—"}
+          </span>
+        </span>
+      </div>
+      <div className="mt-1 flex items-center justify-between text-[10px] tracking-[0.08em] text-[var(--color-fg-3)]">
+        <span className="flex items-center gap-1.5">
+          DATA SOURCE
+          <span className={`font-display font-semibold ${dataSourceTone}`}>{dataSource}</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          RAG
+          <span className="font-display font-semibold text-[var(--color-fg-3)]">KEYWORD</span>
         </span>
       </div>
     </div>
@@ -358,7 +377,7 @@ export function Shell({ children, title, description }: { children: React.ReactN
         <footer className="mx-auto max-w-[1560px] px-4 pb-8 lg:px-8">
           <div className="flex flex-col gap-1 border-t border-[var(--color-line)] pt-4 text-[10px] tracking-wide text-[var(--color-fg-3)]">
             <span>AVASYA · INTELLIGENT DISASTER RELOCATION DECISION SUPPORT SYSTEM</span>
-            <span>{API_MODE === "LIVE" ? "LIVE API" : "SYNTHETIC DEMO DATA"} · NO OPERATIONAL DECISIONS ARE EXECUTED BY THIS SYSTEM</span>
+            <span>{API_MODE === "LIVE" ? "LIVE API" : "SYNTHETIC DEMO DATA"} · DECISION-SUPPORT PROTOTYPE — THE OFFICER REMAINS RESPONSIBLE FOR ALL OPERATIONAL DECISIONS · NO RELOCATION IS EXECUTED AUTOMATICALLY</span>
           </div>
         </footer>
       </div>

@@ -1,7 +1,7 @@
 import { ApiError } from "@/types/api";
 import type { Habitation, Recommendation, RiskAssessment } from "@/types/api";
 import type { AiExplanation, EvidenceBundle, EvidenceQueryResult, EvidenceRecord } from "@/types/rag";
-import { API_V1, SERVER_API_V1 } from "@/lib/api-base";
+import { API_V1, SERVER_API_V1, resolveUseMockData } from "@/lib/api-base";
 import { mockEvidenceRecords } from "@/lib/mock-evidence";
 
 /**
@@ -114,7 +114,7 @@ export async function searchEvidence(query: string): Promise<EvidenceQueryResult
     "/evidence/search",
     { query },
   );
-  return { query: body.query, results: body.results, dataOrigin: body.dataOrigin };
+  return { query: body.query, results: body.results, dataOrigin: body.dataOrigin, retrievalMethod: body.retrievalMethod };
 }
 
 export async function explainWithAvasya(input: {
@@ -159,6 +159,10 @@ export async function explainWithAvasya(input: {
 }
 
 function USE_MOCK(): boolean {
-  // Re-read lazily so tests/env overrides behave the same as lib/api.
-  return process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
+  // Same resolution as lib/api (shared helper) so both stacks always agree
+  // on the data mode — LIVE is the default; demo is an explicit opt-in.
+  return resolveUseMockData();
 }
+
+/** Evidence-stack data mode, for honest UI labelling (mirrors lib/api). */
+export const EVIDENCE_DATA_MODE: "LIVE" | "MOCK" = USE_MOCK() ? "MOCK" : "LIVE";

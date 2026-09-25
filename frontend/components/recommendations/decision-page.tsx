@@ -13,7 +13,8 @@ import PriorityBadge from "@/components/ui/priority-badge";
 import RiskScore from "@/components/ui/risk-score";
 import Stat from "@/components/ui/stat";
 import { entityCode, entityLabel, fmtNum } from "@/lib/format";
-import { DashboardSkeleton, EmptyState, ErrorState } from "@/components/ui/data-states";
+import { DashboardSkeleton, EmptyState } from "@/components/ui/data-states";
+import { TaxonomyErrorState } from "@/components/ui/error-state";
 import SpatialEvidencePanel from "@/components/ui/spatial-evidence-panel";
 import { recordSessionDecision } from "@/lib/decision-log";
 
@@ -47,18 +48,33 @@ export default function DecisionPage({ id }: { id: string }) {
     let active = true;
     (async () => {
       try {
+        // A 404 from the recommendation lookup means NO DATA for this id —
+        // retrying the same id as a habitation id distinguishes "wrong id"
+        // from "recommendation not yet computed" so the UI can say which.
         let rec: Recommendation;
         try {
           rec = await getRecommendationById(id);
         } catch (error) {
           if (error instanceof ApiError && error.status === 404) {
-            rec = await getRecommendationFor(id);
+            rec = await getRecommendationFor(id).catch((fallbackError: unknown) => {
+              if (fallbackError instanceof ApiError && fallbackError.status === 503) {
+                // Recommendation evidence missing for an existing habitation:
+                // this is INSUFFICIENT evidence, not a network failure.
+                throw new ApiError("unavailable", 503, "No relocation recommendation has been computed for this habitation yet — required evidence is unavailable.");
+              }
+              throw fallbackError;
+            });
           } else {
             throw error;
           }
         }
         const hab = await getHabitation(rec.habitationId);
-        const dests = await getDestinations();
+        // getDestinations derives from capacity assessments; a failure there
+        // must degrade to "no alternatives assessed", not kill the whole page.
+        const dests = await getDestinations().catch((e: unknown) => {
+          if (e instanceof ApiError && (e.status === 404 || e.status === 503)) return [] as Destination[];
+          throw e;
+        });
         const cap = rec.destinationId ? await getDestinationCapacity(rec.destinationId).catch(() => undefined) : undefined;
         if (!active) return;
         setRecommendation(rec);
@@ -159,7 +175,14 @@ export default function DecisionPage({ id }: { id: string }) {
   };
 
   if (loading) return <DashboardSkeleton />;
-  if (error) return <ErrorState message="Unable to load officer decision data." onRetry={retryLoad} />;
+  if (error)
+    return (
+      <TaxonomyErrorState
+        error={error}
+        onRetry={retryLoad}
+        headline="Unable to load officer decision data."
+      />
+    );
   if (!recommendation || !habitation) return <EmptyState title="No recommendation found." />;
   const destination = destinations.find((item) => item.id === recommendation.destinationId);
   const selectedOverride = destinations.find((item) => item.id === overrideDestination);
@@ -280,9 +303,11 @@ export default function DecisionPage({ id }: { id: string }) {
           {chain.map((step, index) => (
             <div key={step.label} className="flex items-center">
               {index > 0 && <span className="mx-2 shrink-0 text-[var(--color-fg-3)]" aria-hidden="true">↓</span>}
-              <div className="min-w-[86px] shrink-0">
+              {/* w-max: values like "80.85 / 100 · HIGH" are wider than the old
+                  min-w-[86px] box and painted over the next step's label. */}
+              <div className="w-max shrink-0">
                 <div className={`font-display text-[9px] font-semibold tracking-[0.14em] ${index === chain.length - 1 ? "text-accent" : "text-[var(--color-fg-3)]"}`}>{step.label}</div>
-                <div className={`mono mt-1 text-[12px] font-semibold ${index === chain.length - 1 ? "text-accent" : "text-[var(--color-fg)]"}`}>{step.value}</div>
+                <div className={`mono mt-1 whitespace-nowrap text-[12px] font-semibold ${index === chain.length - 1 ? "text-accent" : "text-[var(--color-fg)]"}`}>{step.value}</div>
               </div>
             </div>
           ))}

@@ -61,6 +61,10 @@ def _chunk_to_record(hit: Any) -> dict[str, Any]:
     """Map a RAG RetrievalResult to the frontend EvidenceRecord shape."""
     metadata: dict[str, Any] = hit.metadata or {}
     source = hit.source
+    # Provenance is carried in chunk metadata by the indexer. Legacy chunks
+    # indexed before that field existed have no value — mark them MIXED
+    # (conservative: possibly-synthetic) rather than claiming REAL.
+    origin = metadata.get("data_origin") or "MIXED"
     return {
         "sourceId": f"EVD-{source.source_id:03d}",
         "title": metadata.get("source_name") or f"Evidence row {source.source_id}",
@@ -69,8 +73,8 @@ def _chunk_to_record(hit: Any) -> dict[str, Any]:
         "hazardType": source.evidence_type,
         "date": None,
         "snippet": hit.text,
-        "origin": "MIXED",
-        "verification": None,
+        "origin": origin,
+        "verification": metadata.get("verification"),
         "relevance": round(hit.score, 4),
     }
 
@@ -134,9 +138,26 @@ def search_evidence(
     return _keyword_search(db, query, limit)
 
 
+def _embedder_is_stub() -> bool:
+    """True when the configured embedder cannot produce meaningful vectors
+    (NullEmbedder zero-vector stub). Ranking against zero vectors gives every
+    chunk similarity 0.0, so a 'semantic' result would be a relabelled
+    arbitrary order — the keyword path actually discriminates and must answer
+    instead, under its own honest label."""
+    try:
+        from backend.rag.embedder import NullEmbedder, get_embedder
+
+        return isinstance(get_embedder(), NullEmbedder)
+    except Exception:
+        return True
+
+
 def _semantic_search(db: Session, query: str, limit: int) -> dict[str, Any] | None:
-    """RAG-backed retrieval. Returns None when the corpus is not ready so the
-    keyword path still answers (same contract shape, honest retrievalMethod)."""
+    """RAG-backed retrieval. Returns None when the corpus is not ready (or the
+    embedder is a stub that cannot rank) so the keyword path still answers
+    (same contract shape, honest retrievalMethod)."""
+    if _embedder_is_stub():
+        return None
     from backend.models import DocumentChunk
     from sqlalchemy import func
 
@@ -210,6 +231,12 @@ def _keyword_search(db: Session, query: str, limit: int) -> dict[str, Any]:
         }
 
     max_hits = top[0][0]
+    # Say WHY the semantic engine did not answer: corpus unindexed vs. the
+    # embedder being a zero-vector stub. Both land here, but the reason differs.
+    if _embedder_is_stub():
+        method_note = "keyword (E5 embedder unavailable — semantic ranking disabled until the embedding model is installed)"
+    else:
+        method_note = "keyword (semantic retrieval pending RAG indexing — run POST /api/v1/rag/index)"
     return {
         "query": query,
         "results": [
@@ -217,7 +244,7 @@ def _keyword_search(db: Session, query: str, limit: int) -> dict[str, Any]:
         ],
         "dataOrigin": "MIXED",
         "status": "OK",
-        "retrievalMethod": "keyword (semantic retrieval pending RAG indexing — run POST /api/v1/rag/index)",
+        "retrievalMethod": method_note,
     }
 
 

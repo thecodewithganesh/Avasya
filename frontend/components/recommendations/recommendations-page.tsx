@@ -68,7 +68,7 @@ export default function RecommendationsPage() {
         title="Officer decision queue"
         description="Review AI-assisted relocation recommendations before officer approval."
       >
-        <DataProvenanceBadge provenance={recommendations.every((item) => item.dataOrigin === "SYNTHETIC_DEMO") ? "SYNTHETIC_DEMO" : "UNKNOWN"} />
+        <DataProvenanceBadge provenance={(() => { const origins = new Set(recommendations.map((item) => item.dataOrigin).filter(Boolean)); if (origins.size === 0) return "UNKNOWN" as const; if (origins.size === 1) return [...origins][0] as "REAL" | "SYNTHETIC_DEMO" | "MIXED"; return "MIXED" as const; })()} />
       </PageHead>
 
       <section className="panel glow-top mb-4 overflow-hidden border-accent/25"><div className="grid grid-cols-2 gap-px bg-[var(--color-line)] sm:grid-cols-4"><div className="bg-surface p-4"><div className="eyebrow">PENDING REVIEW</div><div className="metric mt-2 text-3xl font-semibold text-[var(--color-fg)]">{pendingRecommendations.length}</div></div><div className="bg-surface p-4"><div className="eyebrow">IMMEDIATE</div><div className="metric mt-2 text-3xl font-semibold text-immediate">{immediate}</div></div><div className="bg-surface p-4"><div className="eyebrow">CAPACITY SUFFICIENT</div><div className="metric mt-2 text-3xl font-semibold text-safe">{pendingRecommendations.filter((item) => item.capacityStatus === "SUFFICIENT").length}</div></div><div className="bg-surface p-4"><div className="eyebrow">OFFICER DECISION</div><div className="mt-3 text-[11px] font-semibold tracking-[0.1em] text-accent">REQUIRED</div></div></div></section>
