@@ -15,11 +15,15 @@ from backend.routes.rag_admin import router as rag_admin_router
 
 
 def _cors_origins() -> list[str]:
-    return [
+    origins = [
         origin.strip()
         for origin in settings.CORS_ORIGINS.split(",")
         if origin.strip()
     ]
+    production_frontend = "https://avasya1.netlify.app"
+    if production_frontend not in origins:
+        origins.append(production_frontend)
+    return origins
 
 
 app = FastAPI(title="AVASYA Backend", version="1.0.0")

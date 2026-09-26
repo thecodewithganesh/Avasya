@@ -106,6 +106,27 @@ def test_cors_is_environment_driven(application) -> None:
     assert response.headers["access-control-allow-origin"] == "https://example.com"
 
 
+def test_cors_allows_production_netlify_frontend(application) -> None:
+    class FakeSession:
+        def execute(self, statement):
+            return None
+
+    def override_get_db():
+        yield FakeSession()
+
+    application.app.dependency_overrides[application.get_db] = override_get_db
+    try:
+        response = TestClient(application.app).get(
+            "/health",
+            headers={"Origin": "https://avasya1.netlify.app"},
+        )
+    finally:
+        application.app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://avasya1.netlify.app"
+
+
 def test_configuration_requires_database_url(application, monkeypatch) -> None:
     """Runs through the `application` fixture so config/main are restored
     afterwards instead of leaving a broken no-DATABASE_URL module state."""
