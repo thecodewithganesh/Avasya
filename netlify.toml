@@ -4,9 +4,8 @@
 [build]
   base = "frontend"
   command = "npm run build"
-  # Netlify resolves `publish` relative to the repo root (not `base`),
-  # so this must include the frontend/ prefix.
-  publish = "frontend/.next"
+  # Publish paths are relative to `base` (frontend/).
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
