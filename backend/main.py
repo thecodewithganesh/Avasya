@@ -37,6 +37,16 @@ app.include_router(evidence_router)
 app.include_router(rag_admin_router)
 
 
+@app.get("/")
+def root() -> dict[str, str]:
+    return {
+        "name": "AVASYA Backend",
+        "status": "ok",
+        "health": "/health",
+        "docs": "/docs",
+    }
+
+
 @app.on_event("startup")
 def startup_event():
     if settings.DATABASE_URL.startswith("sqlite"):

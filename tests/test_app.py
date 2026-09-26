@@ -50,6 +50,18 @@ def test_fastapi_import_and_health(application) -> None:
     assert "database" in response.json()
 
 
+def test_root_returns_api_status_and_links(application) -> None:
+    response = TestClient(application.app).get("/")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "AVASYA Backend",
+        "status": "ok",
+        "health": "/health",
+        "docs": "/docs",
+    }
+
+
 def test_database_health(application) -> None:
     class FakeResult:
         def scalar_one(self):
