@@ -104,6 +104,17 @@ def test_configuration_requires_database_url(application, monkeypatch) -> None:
         importlib.reload(config)
 
 
+def test_render_database_url_uses_psycopg_driver(application, monkeypatch) -> None:
+    import backend.core.config as config
+
+    monkeypatch.setenv("DATABASE_URL", "postgres://user:pass@db.example.com:5432/app")
+    reloaded = importlib.reload(config)
+
+    assert reloaded.settings.DATABASE_URL == (
+        "postgresql+psycopg://user:pass@db.example.com:5432/app"
+    )
+
+
 def test_habitation_routes_validate_input_and_unknown_resources(application) -> None:
     class FakeScalars:
         def all(self):

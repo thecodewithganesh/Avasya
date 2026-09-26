@@ -27,9 +27,6 @@ services:
         fromDatabase:
           name: avasya-db
           property: connectionString
-      # SQLAlchemy needs the psycopg driver scheme
-      - key: DATABASE_URL_TRANSFORM
-        value: skip
       - key: CORS_ORIGINS
         # TODO: replace with your Netlify site URL once created
         value: https://avasya.netlify.app,http://localhost:3000,http://localhost:3001

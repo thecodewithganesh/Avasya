@@ -8,6 +8,10 @@ from pathlib import Path
 def _database_url() -> str:
     value = os.getenv("DATABASE_URL")
     if value:
+        if value.startswith("postgres://"):
+            return "postgresql+psycopg://" + value.removeprefix("postgres://")
+        if value.startswith("postgresql://"):
+            return "postgresql+psycopg://" + value.removeprefix("postgresql://")
         return value
 
     if not os.getenv("PYTEST_CURRENT_TEST"):
