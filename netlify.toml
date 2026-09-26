@@ -9,6 +9,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  NEXT_PUBLIC_API_URL = "https://avasya-backend.onrender.com"
 
 # NEXT_PUBLIC_* values are baked into the bundle at build time.
 # Set these in Netlify UI (Site configuration -> Environment variables)

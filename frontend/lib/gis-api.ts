@@ -4,13 +4,9 @@
  * without zone layers (no fabricated GeoJSON).
  */
 
-// Mirror of api.ts's base resolution (server-side fetches inside Docker use
-// the compose hostname; browser fetches use the public host-mapped URL).
-const BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:58000").replace(/\/$/, "");
-const API_BASE =
-  typeof window === "undefined" && process.env.SERVER_SIDE_API_URL
-    ? `${process.env.SERVER_SIDE_API_URL.replace(/\/$/, "")}/api/v1`
-    : `${BASE}/api/v1`;
+import { API_V1, SERVER_API_V1 } from "@/lib/api-base";
+
+const API_BASE = typeof window === "undefined" ? SERVER_API_V1 : API_V1;
 
 export interface HazardZoneFeature {
   type: "Feature";

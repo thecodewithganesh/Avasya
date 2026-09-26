@@ -28,8 +28,7 @@ services:
           name: avasya-db
           property: connectionString
       - key: CORS_ORIGINS
-        # TODO: replace with your Netlify site URL once created
-        value: https://avasya.netlify.app,http://localhost:3000,http://localhost:3001
+        value: https://avasya1.netlify.app,https://avasya.netlify.app,http://localhost:3000,http://localhost:3001
       - key: APP_ENV
         value: production
       - key: DB_ECHO

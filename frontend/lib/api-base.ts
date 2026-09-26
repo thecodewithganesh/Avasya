@@ -5,7 +5,11 @@
  * without importing the whole API client (and its mock dataset graph).
  */
 
-const BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:58000").replace(/\/$/, "");
+const configuredBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:58000").replace(/\/$/, "");
+const BASE = configuredBase.replace(
+  /^http:\/\//,
+  configuredBase.includes(".onrender.com") ? "https://" : "http://",
+);
 export const API_V1 = `${BASE}/api/v1`;
 
 /**
