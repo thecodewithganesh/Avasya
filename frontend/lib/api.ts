@@ -520,14 +520,17 @@ export async function getRecommendationById(recId: string): Promise<Recommendati
     if (!found) throw new ApiError("not-found", 404, "Recommendation not found.");
     return found;
   }
-  // Live contract exposes recommendations per habitation. Route ids may be
-  // recommendation-style ("REC-1") or bare habitation ids ("1") — normalize
-  // to the numeric habitation id before hitting the wire.
+  // Resolve queue recommendation IDs to their habitation before fetching the
+  // detail contract, which is keyed by habitation rather than recommendation.
   const numeric = Number(recId.replace(/^REC-/i, ""));
   if (!Number.isFinite(numeric) || numeric <= 0) {
     throw new ApiError("not-found", 404, "Recommendation not found.");
   }
-  return getRecommendationFor(String(numeric));
+  const queue = await getJson<WireRecommendationQueueEntry[]>(
+    "/recommendations?limit=500&include_decided=true",
+  );
+  const entry = queue.find((item) => item.recommendation_id === numeric);
+  return getRecommendationFor(String(entry?.habitation_id ?? numeric));
 }
 
 export async function getRecommendations(): Promise<Recommendation[]> {

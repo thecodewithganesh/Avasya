@@ -58,9 +58,9 @@ services:
       AVASYA_LLM_TIMEOUT: ${AVASYA_LLM_TIMEOUT:-}
       AVASYA_LLM_TEMPERATURE: ${AVASYA_LLM_TEMPERATURE:-}
       AVASYA_LLM_MAX_TOKENS: ${AVASYA_LLM_MAX_TOKENS:-}
-      # Synthetic fixtures are strictly opt-in.  A missing real dataset must
-      # surface as unavailable, never be replaced by a convincing demo.
-      AVASYA_ENABLE_SYNTHETIC_DEMO: ${AVASYA_ENABLE_SYNTHETIC_DEMO:-false}
+      # The local prototype uses clearly labelled synthetic fixtures by default.
+      # Set false to run only real-data ingestion.
+      AVASYA_ENABLE_SYNTHETIC_DEMO: ${AVASYA_ENABLE_SYNTHETIC_DEMO:-true}
     ports:
       # Host port 58000 to avoid clashes with other local stacks that bind 8000.
       - "58000:8000"
@@ -75,11 +75,10 @@ services:
       - ./data/processed:/app/data/processed:ro
     command: >
       sh -c "alembic upgrade head &&
-             python -m backend.ingestion.south_india &&
              if [ \"$$AVASYA_ENABLE_SYNTHETIC_DEMO\" = \"true\" ]; then
                python -m backend.bootstrap_demo && python -m backend.seed_demo;
              else
-               echo 'synthetic demo disabled; serving only persisted real data';
+               python -m backend.ingestion.south_india;
              fi &&
              uvicorn backend.main:app --host 0.0.0.0 --port 8000"
     healthcheck:
@@ -118,6 +117,7 @@ services:
         NEXT_PUBLIC_API_URL: http://localhost:58000
         NEXT_PUBLIC_USE_MOCK_DATA: "false"
         NEXT_PUBLIC_DEMO_OFFICER_EMAIL: demo.officer@avasya.local
+        SERVER_SIDE_API_URL: http://backend:8000
         # Supabase browser auth (optional): anon key only, never service role.
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
