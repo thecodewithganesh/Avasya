@@ -19,6 +19,9 @@ COPY alembic.ini ./alembic.ini
 # repository-root database directory.
 COPY scripts/database ./database
 COPY backend ./backend
+# Small, explicitly synthetic fixtures used to bootstrap the hosted prototype.
+RUN mkdir -p ./data/raw
+COPY data/raw/habitations.geojson data/raw/hazards.geojson data/raw/relief_centers.geojson data/raw/historical_events.csv ./data/raw/
 # Decision engines + LLM teammate module (ai/llm), adapted by
 # backend/integrations/llm_client.py. Copied as a whole package — a previous
 # selective COPY overwrote ai/llm/__init__.py and broke the ai.llm import
@@ -33,4 +36,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "alembic upgrade head && if [ \"$AVASYA_ENABLE_SYNTHETIC_DEMO\" = \"true\" ]; then python -m backend.bootstrap_demo && python -m backend.seed_demo; fi && exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

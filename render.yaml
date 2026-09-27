@@ -40,6 +40,8 @@ services:
         value: "null"
       - key: EMBEDDING_MODEL
         value: intfloat/multilingual-e5-small
+      - key: AVASYA_ENABLE_SYNTHETIC_DEMO
+        value: "true"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_JWT_SECRET

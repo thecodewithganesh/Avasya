@@ -24,7 +24,12 @@ frontend/build
 !.env.example
 
 # --- Data that is mounted, not copied ---
-data/raw
+data/raw/*
+!data/raw/
+!data/raw/habitations.geojson
+!data/raw/hazards.geojson
+!data/raw/relief_centers.geojson
+!data/raw/historical_events.csv
 data/processed
 models
 *.gguf
