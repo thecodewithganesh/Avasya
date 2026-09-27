@@ -19,6 +19,10 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
+    startCommand: >-
+      sh -c 'alembic upgrade head && python -m backend.bootstrap_demo &&
+      AVASYA_ENABLE_SYNTHETIC_DEMO=true python -m backend.seed_demo &&
+      exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}'
     plan: free
     healthCheckPath: /health
     autoDeploy: true
