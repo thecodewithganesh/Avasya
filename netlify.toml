@@ -11,6 +11,12 @@
   NODE_VERSION = "22"
   NEXT_PUBLIC_API_URL = "https://avasya-backend.onrender.com"
 
+[[redirects]]
+  from = "/backend-api/*"
+  to = "https://avasya-backend.onrender.com/:splat"
+  status = 200
+  force = true
+
 # NEXT_PUBLIC_* values are baked into the bundle at build time.
 # Set these in Netlify UI (Site configuration -> Environment variables)
 # or uncomment here and fill in real values:

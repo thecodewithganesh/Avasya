@@ -10,7 +10,11 @@ const BASE = configuredBase.replace(
   /^http:\/\//,
   configuredBase.includes(".onrender.com") ? "https://" : "http://",
 );
-export const API_V1 = `${BASE}/api/v1`;
+// Browser requests stay same-origin through Netlify's proxy so they do not
+// depend on the backend's CORS settings. Server-side requests use the public
+// backend URL (or Docker's SERVER_SIDE_API_URL) directly.
+export const API_V1 =
+  typeof window === "undefined" ? `${BASE}/api/v1` : "/backend-api/api/v1";
 
 /**
  * Server-side fallback base. NEXT_PUBLIC_API_URL is baked in at build time
@@ -23,7 +27,7 @@ export const API_V1 = `${BASE}/api/v1`;
 export const SERVER_API_V1 =
   typeof window === "undefined" && process.env.SERVER_SIDE_API_URL
     ? `${process.env.SERVER_SIDE_API_URL.replace(/\/$/, "")}/api/v1`
-    : API_V1;
+    : `${BASE}/api/v1`;
 
 /**
  * Single source of truth for the LIVE/DEMO data-mode switch (audit Part 14).
